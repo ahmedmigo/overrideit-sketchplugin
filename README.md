@@ -29,7 +29,7 @@ In this example we have 3 tabs each tab has nested symbols for (icon, text, back
 I am searching "Tab 1" and the plugin filter the overrides to only the symbol that has layer name Tab 1, and with it's nested symbols ha cool ?!
 </p>
 <h2> 2. Text Overrides </h2>
-<img align="right" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/paragraph.png?raw=true">
+<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/paragraph.png?raw=true">
 </br>
 <p>
 For text overrides, you can scale the text field as you wish, and no more tight text fields to modify your paragraphs.
