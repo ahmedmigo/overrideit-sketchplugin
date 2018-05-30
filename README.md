@@ -4,23 +4,27 @@ Overrideit is sketch plugin that allow designers to search in overridelist and o
 
 <h1> Overrideit Features:</h1>
 <h2> 1. Search overrides </h2>
-<img align="right" src="https://raw.githubusercontent.com/ahmedmigo/Move-to-library-sketchplugin/master/icon.png">
+<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/overrides.png?raw=true">
+</br>
 <p>
 You can search now in overrides by Layer Name or by value of the layer. </br>
 For example if you have text in table you can just write the text and our search will filter the override list and bring the override you need.
 </p>
-<img align="right" src="https://raw.githubusercontent.com/ahmedmigo/Move-to-library-sketchplugin/master/icon.png">
+<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/Search.png?raw=true">
+</br>
 <p>
 There is more!
 We adjusted the search algorithm to bring the symbol and it's nested symbols!
 </p>
-<img align="right" src="https://raw.githubusercontent.com/ahmedmigo/Move-to-library-sketchplugin/master/icon.png">
+<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/symbolsearch.gif?raw=true">
+</br>
 <p>
 In this example we have 3 tabs each tab has nested symbols for (icon, text, background colors… etc) </br>
 I am searching "Tab 1" and the plugin filter the overrides to only the symbol that has layer name Tab 1, and with it's nested symbols ha cool ?!
 </p>
 <h2> 2. Text Overrides </h2>
-<img align="right" src="https://raw.githubusercontent.com/ahmedmigo/Move-to-library-sketchplugin/master/icon.png">
+<img align="right" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/paragraph.png?raw=true">
+</br>
 For text overrides, you can scale the text field as you wish, and no more tight text fields to modify your paragraphs.
 
 <br>
