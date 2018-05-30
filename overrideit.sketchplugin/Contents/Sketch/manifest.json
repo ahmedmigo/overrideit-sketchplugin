@@ -5,7 +5,7 @@
   "identifier": "overrideit.plugin",
   "description": "Search in overrides, and in overrides dropdowns",
   "authorEmail": "ahmad.migo@gmail.com",
-  "URL": "https://github.com/ahmedmigo/Move-to-library-sketchplugin",
+  "URL": "https://github.com/ahmedmigo/overrideit-sketchplugin",
   "author": "Ahmed Genaidy",
   "icon": "icon.png",
   "commands": [
