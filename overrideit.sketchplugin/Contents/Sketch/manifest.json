@@ -1,0 +1,42 @@
+{
+  "compatibleVersion": 50,
+  "bundleVersion": 1,
+  "name": "Overrideit 🔁",
+  "identifier": "overrideit.plugin",
+  "description": "Search in overrides, and in overrides dropdowns",
+  "authorEmail": "ahmad.migo@gmail.com",
+  "URL": "https://github.com/ahmedmigo/Move-to-library-sketchplugin",
+  "author": "Ahmed Genaidy",
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "onSelection",
+      "identifier": "my-command-identifier.selection",
+      "handlers": {
+        "actions": {
+          "SelectionChanged.begin": "onRun"
+        }
+      },
+      "script": "my-command.js"
+    },
+    {
+      "name": "Overrideit",
+      "identifier": "Overrideit",
+      "script": "my-command.js",
+      "shortcut": "cmd ]",
+      "handlers": {
+        "run": "onRun"
+      }
+    }
+  ],
+  "menu": {
+    "title": "Overrideit",
+    "isRoot": true,
+    "items": [
+      "Overrideit"
+    ]
+  },
+  "version": "0.1.2",
+  "disableCocoaScriptPreprocessor": true,
+  "appcast": "https://raw.githubusercontent.com//master/.appcast.xml"
+}
