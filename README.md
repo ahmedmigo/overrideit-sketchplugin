@@ -1,7 +1,9 @@
 # overrideit sketchplugin
 
+<p>
 Overrideit is sketch plugin that allow designers to search in overridelist and overrides dropdowns, and with many other features.
-<img align="center" height="300px" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/overrides.png?raw=true">
+</p>
+<img align="right" height="500px" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/overrides.png?raw=true">
 </br>
 
 <h1> Overrideit Features:</h1>
