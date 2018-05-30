@@ -43,7 +43,7 @@ if you saved your time shout me some coffee to be awake for improvements ☕️
 </br>
 </p>
 </a>
-<b>Download the plugin⬇️ </b></br> https://github.com/ahmedmigo/Move-to-library-sketchplugin/archive/master.zip
+<b>Download the plugin⬇️ </b></br> https://github.com/ahmedmigo/overrideit-sketchplugin/archive/master.zip
 </br>
 don't forget to follow me on twitter @ser_migo 🐦
 </p>
