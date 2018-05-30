@@ -1,16 +1,18 @@
 # overrideit sketchplugin
 
 Overrideit is sketch plugin that allow designers to search in overridelist and overrides dropdowns, and with many other features.
+<img align="center" height="300px" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/overrides.png?raw=true">
+</br>
 
 <h1> Overrideit Features:</h1>
 <h2> 1. Search overrides </h2>
-<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/overrides.png?raw=true">
+<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/Search.png?raw=true">
 </br>
 <p>
 You can search now in overrides by Layer Name or by value of the layer. </br>
 For example if you have text in table you can just write the text and our search will filter the override list and bring the override you need.
 </p>
-<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/Search.png?raw=true">
+<img align="center" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/txt.png?raw=true">
 </br>
 <p>
 There is more!
