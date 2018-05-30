@@ -31,10 +31,13 @@ I am searching "Tab 1" and the plugin filter the overrides to only the symbol th
 <h2> 2. Text Overrides </h2>
 <img align="right" src="https://github.com/ahmedmigo/overrideit-sketchplugin/blob/master/imgs/paragraph.png?raw=true">
 </br>
+<p>
 For text overrides, you can scale the text field as you wish, and no more tight text fields to modify your paragraphs.
-
+</p>
 <br>
+<p>
 if you saved your time shout me some coffee to be awake for improvements ☕️
+</p>
 <br>
 <a href="https://www.paypal.me/genaidy">
 <img width="160" height="41" src="https://raw.githubusercontent.com/DWilliames/PDF-export-sketch-plugin/master/images/paypal-badge.png">
