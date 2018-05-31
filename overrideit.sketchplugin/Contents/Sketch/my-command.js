@@ -1859,9 +1859,7 @@ var options = {
       browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
       browserWindow["document"] = Context.document; //browserWindow.loadURL("http://localhost:8080/");
 
-      browserWindow.once("ready-to-show", function () {
-        browserWindow.show();
-      });
+      browserWindow.show();
     }
   }
 
@@ -1876,7 +1874,7 @@ var options = {
     }
 
     if (browserWindow.document != context.document) {
-      browserWindow.destroy();
+      browserWindow.close();
       threadDictionary.removeObjectForKey("overrideitWebView");
     } else {
       var loadOverridesForSelection = function loadOverridesForSelection(symbolInstance) {
@@ -2171,6 +2169,7 @@ var options = {
       });
       browserWindow.webContents.on("closeWindow", function () {
         browserWindow.close();
+        threadDictionary.removeObjectForKey("overrideitWebView");
       });
       browserWindow.webContents.on("setOverride", function (overridePoint, value, symbolInstanceID) {
         var symbolInstance = context.document.documentData().layerWithID(symbolInstanceID);
