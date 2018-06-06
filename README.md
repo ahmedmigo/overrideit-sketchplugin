@@ -36,6 +36,12 @@ For text overrides, you can scale the text field as you wish, and no more tight 
 </p>
 <br>
 <p>
+Special thanks to the people who contributed in the ideation and prototyping phase.
+https://designtoolsberlin.com/
+Madsen (@heymadsen) ,Silvia (@svorklab), Bart, Sander
+</p>
+<br>
+<p>
 if you saved your time shout me some coffee to be awake for improvements ☕️
 <br>
 <a href="https://www.paypal.me/genaidy">
