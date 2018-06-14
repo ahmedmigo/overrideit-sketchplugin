@@ -12826,6 +12826,16 @@ var options = {
         }
       };
 
+      var setWindowPosition = function setWindowPosition(context, browserWindow) {
+        var docWindow = context.document.documentWindow();
+        var frame = docWindow.frame();
+        frame.origin.x = frame.origin.x + frame.size.width - 250;
+        frame.size.width = 250;
+        frame.size.height = 600;
+
+        browserWindow._panel.setFrame_display_animate_(frame, false, false);
+      };
+
       var setImgfromUrl = function setImgfromUrl(url) {
         var image = NSImage.alloc().initWithContentsOfURL(url);
         var imageData = MSImageData.alloc().initWithImage(image, true);
@@ -13162,9 +13172,9 @@ var options = {
       var symbolInstance = context.selection[0]; //global.overrides = loadOverridesForSelection(symbolInstance);
 
       global.overrides = loadOverridesForSelection(symbolInstance);
+      setWindowPosition(context, browserWindow);
       runWebCallback(browserWindow, "changeSelection", global.overrides, String(symbolInstance.objectID()));
-      browserWindow.webContents.on("posScreen", function (width, height) {
-        browserWindow.setPosition(width - 250, height - 630, false);
+      browserWindow.webContents.on("posScreen", function (width, height) {//browserWindow.setPosition(width - 250, height - 630, false);
       });
       browserWindow.webContents.on("moveWindow", function (posX, posY) {
         browserWindow.setPosition(posX, posY, true);
