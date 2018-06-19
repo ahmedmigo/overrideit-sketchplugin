@@ -12799,9 +12799,9 @@ var options = {
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
-      browserWindow["document"] = Context.document; //browserWindow.loadURL("http://localhost:8080/");
+      browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html")); //browserWindow.loadURL("http://localhost:8080/");
 
+      browserWindow["document"] = Context.document;
       browserWindow.show();
     }
   }
@@ -12972,7 +12972,8 @@ var options = {
             currentValue["symbolID"] = String(symbolID);
             currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
             currentValue["Thumbnail"] = String(getImageFromSymbol(symbol));
-            currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
+            log(currentValue["Thumbnail"]);
+            currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name); // global.symbolThumbnailCash[symbolID] = { symbol: symbol };
           }
         } else {
           currentValue["value"] = String(availableOverride.currentValue());
@@ -13031,6 +13032,10 @@ var options = {
           symbolObj["name"] = String(matchedSymbols[i].name());
           symbolObj["symbolID"] = String(matchedSymbols[i].symbolID());
           symbolObj["Thumbnail"] = String(getImageFromSymbol(matchedSymbols[i]));
+          log(currentValue["Thumbnail"]); // global.symbolThumbnailCash[matchedSymbols[i].symbolID()] = {
+          //   symbol: matchedSymbols[i]
+          // };
+
           matchSymbolArray = matchSymbolArray.concat(symbolObj);
         }
 
@@ -13156,7 +13161,10 @@ var options = {
             importableSymbolsDictionary[foreignSymbol.symbolID()] = matchedSymbols[i];
             symbolObj["name"] = String(foreignSymbol.name());
             symbolObj["symbolID"] = String(foreignSymbol.symbolID());
-            symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol));
+            symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol)); // global.symbolThumbnailCash[foreignSymbol.symbolID()] = {
+            //   symbol: foreignSymbol
+            // };
+
             matchSymbolArray = matchSymbolArray.concat(symbolObj);
           }
 
@@ -13169,16 +13177,14 @@ var options = {
       global.overrides = {};
       global.symbolsOverrides = {};
       global.importableSymbolsOverridesDicIdMap = {};
-      var symbolInstance = context.selection[0]; //global.overrides = loadOverridesForSelection(symbolInstance);
+      var symbolInstance = context.selection[0];
 
-      global.overrides = loadOverridesForSelection(symbolInstance);
+      if (Context.actionContext) {
+        global.overrides = loadOverridesForSelection(symbolInstance);
+      }
+
       setWindowPosition(context, browserWindow);
       runWebCallback(browserWindow, "changeSelection", global.overrides, String(symbolInstance.objectID()));
-      browserWindow.webContents.on("posScreen", function (width, height) {//browserWindow.setPosition(width - 250, height - 630, false);
-      });
-      browserWindow.webContents.on("moveWindow", function (posX, posY) {
-        browserWindow.setPosition(posX, posY, true);
-      });
       browserWindow.webContents.on("openExternal", function (url) {
         NSWorkspace.sharedWorkspace().openURL(NSURL.URLWithString(url));
       });
