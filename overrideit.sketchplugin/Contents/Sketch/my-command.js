@@ -12972,8 +12972,7 @@ var options = {
             currentValue["symbolID"] = String(symbolID);
             currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
             currentValue["Thumbnail"] = String(getImageFromSymbol(symbol));
-            log(currentValue["Thumbnail"]);
-            currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name); // global.symbolThumbnailCash[symbolID] = { symbol: symbol };
+            currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
           }
         } else {
           currentValue["value"] = String(availableOverride.currentValue());
@@ -13032,10 +13031,6 @@ var options = {
           symbolObj["name"] = String(matchedSymbols[i].name());
           symbolObj["symbolID"] = String(matchedSymbols[i].symbolID());
           symbolObj["Thumbnail"] = String(getImageFromSymbol(matchedSymbols[i]));
-          log(currentValue["Thumbnail"]); // global.symbolThumbnailCash[matchedSymbols[i].symbolID()] = {
-          //   symbol: matchedSymbols[i]
-          // };
-
           matchSymbolArray = matchSymbolArray.concat(symbolObj);
         }
 
@@ -13161,10 +13156,7 @@ var options = {
             importableSymbolsDictionary[foreignSymbol.symbolID()] = matchedSymbols[i];
             symbolObj["name"] = String(foreignSymbol.name());
             symbolObj["symbolID"] = String(foreignSymbol.symbolID());
-            symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol)); // global.symbolThumbnailCash[foreignSymbol.symbolID()] = {
-            //   symbol: foreignSymbol
-            // };
-
+            symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol));
             matchSymbolArray = matchSymbolArray.concat(symbolObj);
           }
 
