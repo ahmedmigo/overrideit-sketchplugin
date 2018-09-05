@@ -41,17 +41,32 @@ var exports =
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -11486,12 +11501,12 @@ module.exports = Promise;
   !*** ./node_modules/sketch-module-web-view/lib/browser-api.js ***!
   \****************************************************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var ObjCClass = __webpack_require__(/*! cocoascript-class */ "./node_modules/cocoascript-class/lib/index.js").default
+/***/ (function(module, exports) {
 
 var COLOR_CLASSES = [
   'NSColor',
+  'NSCachedWhiteColor',
+  'NSColorSpaceColor',
   'NSDynamicSystemColor',
   'NSCachedColorSpaceColor',
 ]
@@ -11537,9 +11552,6 @@ function parseHexColor(color) {
 
   return NSColor.colorWithSRGBRed_green_blue_alpha(r, g, b, a)
 }
-
-// We create one ObjC class for ourselves here
-var WindowDelegateClass
 
 module.exports = function(browserWindow, panel, webview) {
   // keep reference to the subviews
@@ -11852,21 +11864,34 @@ module.exports = function(browserWindow, panel, webview) {
     return panel.level() !== NSNormalWindowLevel
   }
 
+  browserWindow.moveTop = function() {
+    return panel.orderFrontRegardless()
+  }
+
   browserWindow.center = function() {
     panel.center()
   }
 
   browserWindow.setPosition = function(x, y, animate) {
     var bounds = browserWindow.getBounds()
+    var mainScreenRect = NSScreen.screens()
+      .firstObject()
+      .frame()
     bounds.origin.x = x
-    bounds.origin.y = y
+    bounds.origin.y = Math.round(NSHeight(mainScreenRect) - y)
 
     return browserWindow.setBounds(bounds, animate)
   }
 
   browserWindow.getPosition = function() {
     var bounds = browserWindow.getBounds()
-    return [bounds.origin.x, bounds.origin.y]
+    var mainScreenRect = NSScreen.screens()
+      .firstObject()
+      .frame()
+    return [
+      bounds.origin.x,
+      Math.round(NSHeight(mainScreenRect) - bounds.origin.y),
+    ]
   }
 
   browserWindow.setTitle = function(title) {
@@ -12049,77 +12074,6 @@ module.exports = function(browserWindow, panel, webview) {
     var view = panel.standardWindowButton(button)
     view.superview().addSubview_positioned_relative(view, NSWindowAbove, null)
   }
-
-  if (!WindowDelegateClass) {
-    WindowDelegateClass = ObjCClass({
-      classname: 'WindowDelegateClass',
-      utils: null,
-
-      // Tells the delegate that the window has been resized.
-      'windowDidResize:': function() {
-        this.utils.emit('resize')
-      },
-
-      // Tells the delegate that the window has been resized.
-      'windowDidMiniaturize:': function() {
-        this.utils.emit('minimize')
-      },
-
-      // Tells the delegate that the window has been resized.
-      'windowDidDeminiaturize:': function() {
-        this.utils.emit('restore')
-      },
-
-      // Tells the delegate that the window has been resized.
-      'windowDidEnterFullScreen:': function() {
-        this.utils.emit('enter-full-screen')
-      },
-
-      // Tells the delegate that the window has been resized.
-      'windowDidExitFullScreen:': function() {
-        this.utils.emit('leave-full-screen')
-      },
-
-      // Tells the delegate that the window has been resized.
-      'windowDidMove:': function() {
-        this.utils.emit('move')
-        this.utils.emit('moved')
-      },
-
-      // Tells the delegate that the window has been resized.
-      'windowShouldClose:': function() {
-        var shouldClose = true
-        this.utils.emit('close', {
-          get defaultPrevented() {
-            return !shouldClose
-          },
-          preventDefault: function() {
-            shouldClose = false
-          },
-        })
-        return shouldClose
-      },
-
-      'windowWillClose:': function() {
-        this.utils.emit('closed')
-      },
-
-      'windowDidBecomeKey:': function() {
-        this.utils.emit('focus', panel.currentEvent())
-      },
-
-      'windowDidResignKey:': function() {
-        this.utils.emit('blur')
-      },
-    })
-  }
-
-  var windowDelegate = WindowDelegateClass.new()
-  windowDelegate.utils = NSDictionary.dictionaryWithDictionary({
-    emit: browserWindow.emit.bind(browserWindow),
-  })
-
-  panel.setDelegate(windowDelegate)
 }
 
 
@@ -12165,7 +12119,7 @@ module.exports = function(webView, event) {
     'el.focus' +
     ') {' +
     'el.focus();' + // so focus them
-    '} else {' +
+    '} else if (el) {' +
     'el.dispatchEvent(new Event("click", {bubbles: true}))' + // click the others
     '}'
   )
@@ -12221,6 +12175,7 @@ var buildBrowserAPI = __webpack_require__(/*! ./browser-api */ "./node_modules/s
 var buildWebAPI = __webpack_require__(/*! ./webview-api */ "./node_modules/sketch-module-web-view/lib/webview-api.js")
 var fitSubviewToView = __webpack_require__(/*! ./fitSubview */ "./node_modules/sketch-module-web-view/lib/fitSubview.js")
 var dispatchFirstClick = __webpack_require__(/*! ./dispatch-first-click */ "./node_modules/sketch-module-web-view/lib/dispatch-first-click.js")
+var setDelegates = __webpack_require__(/*! ./set-delegates */ "./node_modules/sketch-module-web-view/lib/set-delegates.js")
 
 function BrowserWindow(options) {
   options = options || {}
@@ -12303,10 +12258,11 @@ function BrowserWindow(options) {
 
   buildBrowserAPI(browserWindow, panel, webView)
   buildWebAPI(browserWindow, panel, webView)
+  setDelegates(browserWindow, panel, webView)
 
   if (options.windowType === 'desktop') {
     panel.setLevel(kCGDesktopWindowLevel - 1)
-    panel.setDisableKeyOrMainWindow(true)
+    // panel.setCanBecomeKeyWindow(false)
     panel.setCollectionBehavior(
       NSWindowCollectionBehaviorCanJoinAllSpaces |
         NSWindowCollectionBehaviorStationary |
@@ -12331,14 +12287,14 @@ function BrowserWindow(options) {
     )
   }
 
-  if (options.focusable === false) {
-    panel.setDisableKeyOrMainWindow(true)
-  }
+  // if (options.focusable === false) {
+  //   panel.setCanBecomeKeyWindow(false)
+  // }
 
   if (options.transparent || options.frame === false) {
     panel.titlebarAppearsTransparent = true
     panel.titleVisibility = NSWindowTitleHidden
-    // panel.opaque = false
+    panel.setOpaque(0)
     panel.isMovableByWindowBackground = true
     var toolbar2 = NSToolbar.alloc().initWithIdentifier(
       'titlebarStylingToolbar'
@@ -12469,7 +12425,7 @@ function BrowserWindow(options) {
     }
   })
 
-  threadDictionary[identifier] = browserWindow
+  threadDictionary[identifier] = panel
 
   if (fiber) {
     fiber.onCleanup(function() {
@@ -12486,13 +12442,30 @@ BrowserWindow.fromId = function(identifier) {
   var threadDictionary = NSThread.mainThread().threadDictionary()
 
   if (threadDictionary[identifier]) {
-    var browserWindow = threadDictionary[identifier]
-    browserWindow.show()
-
-    return browserWindow
+    return BrowserWindow.fromPanel(threadDictionary[identifier], identifier)
   }
 
   return undefined
+}
+
+BrowserWindow.fromPanel = function(panel, identifier) {
+  var browserWindow = new EventEmitter()
+  browserWindow.id = identifier
+
+  if (!panel || !panel.contentView) {
+    throw new Error('needs to pass an NSPanel')
+  }
+
+  var webView = panel.contentView().subviews()[0]
+
+  if (!webView) {
+    throw new Error('The NSPanel needs to have a webview')
+  }
+
+  buildBrowserAPI(browserWindow, panel, webView)
+  buildWebAPI(browserWindow, panel, webView)
+
+  return browserWindow
 }
 
 module.exports = BrowserWindow
@@ -12530,57 +12503,84 @@ module.exports = function(webArguments) {
 
 /***/ }),
 
-/***/ "./node_modules/sketch-module-web-view/lib/webview-api.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/sketch-module-web-view/lib/webview-api.js ***!
-  \****************************************************************/
+/***/ "./node_modules/sketch-module-web-view/lib/set-delegates.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/sketch-module-web-view/lib/set-delegates.js ***!
+  \******************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 var ObjCClass = __webpack_require__(/*! cocoascript-class */ "./node_modules/cocoascript-class/lib/index.js").default
-var EventEmitter = __webpack_require__(/*! @skpm/events */ "./node_modules/@skpm/events/index.js")
 var parseWebArguments = __webpack_require__(/*! ./parseWebArguments */ "./node_modules/sketch-module-web-view/lib/parseWebArguments.js")
 var CONSTANTS = __webpack_require__(/*! ./constants */ "./node_modules/sketch-module-web-view/lib/constants.js")
 
 // We create one ObjC class for ourselves here
+var WindowDelegateClass
 var FrameLoadDelegateClass
 
-// let's try to match https://github.com/electron/electron/blob/master/docs/api/web-contents.md
-module.exports = function buildAPI(browserWindow, panel, webview) {
-  var webContents = new EventEmitter()
+module.exports = function(browserWindow, panel, webview) {
+  if (!WindowDelegateClass) {
+    WindowDelegateClass = ObjCClass({
+      classname: 'WindowDelegateClass',
+      utils: null,
 
-  webContents.loadURL = browserWindow.loadURL
-  webContents.getURL = webview.mainFrameURL
-  webContents.getTitle = webview.mainFrameTitle
-  webContents.isDestroyed = function() {
-    // TODO:
-  }
-  webContents.isLoading = function() {
-    return webview.loading()
-  }
-  webContents.stop = webview.stopLoading
-  webContents.reload = webview.reload
-  webContents.canGoBack = webview.canGoBack
-  webContents.canGoForward = webview.canGoForward
-  webContents.goBack = webview.goBack
-  webContents.goForward = webview.goForward
-  webContents.executeJavaScript = function(script) {
-    return webview.stringByEvaluatingJavaScriptFromString(script)
-  }
-  webContents.undo = function() {
-    webview.undoManager().undo()
-  }
-  webContents.redo = function() {
-    webview.undoManager().redo()
-  }
-  webContents.cut = webview.cut
-  webContents.copy = webview.copy
-  webContents.paste = webview.paste
-  webContents.pasteAndMatchStyle = webview.pasteAsRichText
-  webContents.delete = webview.delete
-  webContents.replace = webview.replaceSelectionWithText
-  webContents.getNativeWebview = function() {
-    return webview
+      // Tells the delegate that the window has been resized.
+      'windowDidResize:': function() {
+        this.utils.emit('resize')
+      },
+
+      // Tells the delegate that the window has been resized.
+      'windowDidMiniaturize:': function() {
+        this.utils.emit('minimize')
+      },
+
+      // Tells the delegate that the window has been resized.
+      'windowDidDeminiaturize:': function() {
+        this.utils.emit('restore')
+      },
+
+      // Tells the delegate that the window has been resized.
+      'windowDidEnterFullScreen:': function() {
+        this.utils.emit('enter-full-screen')
+      },
+
+      // Tells the delegate that the window has been resized.
+      'windowDidExitFullScreen:': function() {
+        this.utils.emit('leave-full-screen')
+      },
+
+      // Tells the delegate that the window has been resized.
+      'windowDidMove:': function() {
+        this.utils.emit('move')
+        this.utils.emit('moved')
+      },
+
+      // Tells the delegate that the window has been resized.
+      'windowShouldClose:': function() {
+        var shouldClose = true
+        this.utils.emit('close', {
+          get defaultPrevented() {
+            return !shouldClose
+          },
+          preventDefault: function() {
+            shouldClose = false
+          },
+        })
+        return shouldClose
+      },
+
+      'windowWillClose:': function() {
+        this.utils.emit('closed')
+      },
+
+      'windowDidBecomeKey:': function() {
+        this.utils.emit('focus', panel.currentEvent())
+      },
+
+      'windowDidResignKey:': function() {
+        this.utils.emit('blur')
+      },
+    })
   }
 
   if (!FrameLoadDelegateClass) {
@@ -12600,11 +12600,13 @@ module.exports = function buildAPI(browserWindow, panel, webview) {
 
       // Called when the scroll position within a frame changes.
       'webView:didChangeLocationWithinPageForFrame:': function(webView) {
-        this.utils.emitEvent('did-navigate-in-page', [
+        this.utils.emit('did-navigate-in-page', [
           {},
-          webView
-            .windowScriptObject()
-            .evaluateWebScript('window.location.href'),
+          String(
+            webView.stringByEvaluatingJavaScriptFromString(
+              'window.location.href'
+            )
+          ),
         ])
       },
 
@@ -12714,11 +12716,74 @@ module.exports = function buildAPI(browserWindow, panel, webview) {
   frameLoadDelegate.utils = NSDictionary.dictionaryWithDictionary({
     setTitle: browserWindow.setTitle.bind(browserWindow),
     emitBrowserEvent: browserWindow.emit.bind(browserWindow),
-    emit: webContents.emit.bind(webContents),
+    emit: browserWindow.webContents.emit.bind(browserWindow.webContents),
     parseWebArguments: parseWebArguments,
+  })
+  // reset state as well
+  frameLoadDelegate.state = NSMutableDictionary.dictionaryWithDictionary({
+    lastQueryId: null,
+    wasReady: 0,
   })
 
   webview.setFrameLoadDelegate(frameLoadDelegate)
+
+  var windowDelegate = WindowDelegateClass.new()
+  windowDelegate.utils = NSDictionary.dictionaryWithDictionary({
+    emit: browserWindow.emit.bind(browserWindow),
+  })
+
+  panel.setDelegate(windowDelegate)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sketch-module-web-view/lib/webview-api.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/sketch-module-web-view/lib/webview-api.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var EventEmitter = __webpack_require__(/*! @skpm/events */ "./node_modules/@skpm/events/index.js")
+
+// let's try to match https://github.com/electron/electron/blob/master/docs/api/web-contents.md
+module.exports = function buildAPI(browserWindow, panel, webview) {
+  var webContents = new EventEmitter()
+
+  webContents.loadURL = browserWindow.loadURL
+  webContents.getURL = webview.mainFrameURL
+  webContents.getTitle = webview.mainFrameTitle
+  webContents.isDestroyed = function() {
+    // TODO:
+  }
+  webContents.isLoading = function() {
+    return webview.loading()
+  }
+  webContents.stop = webview.stopLoading
+  webContents.reload = webview.reload
+  webContents.canGoBack = webview.canGoBack
+  webContents.canGoForward = webview.canGoForward
+  webContents.goBack = webview.goBack
+  webContents.goForward = webview.goForward
+  webContents.executeJavaScript = function(script) {
+    return webview.stringByEvaluatingJavaScriptFromString(script)
+  }
+  webContents.undo = function() {
+    webview.undoManager().undo()
+  }
+  webContents.redo = function() {
+    webview.undoManager().redo()
+  }
+  webContents.cut = webview.cut
+  webContents.copy = webview.copy
+  webContents.paste = webview.paste
+  webContents.pasteAndMatchStyle = webview.pasteAsRichText
+  webContents.delete = webview.delete
+  webContents.replace = webview.replaceSelectionWithText
+  webContents.getNativeWebview = function() {
+    return webview
+  }
 
   browserWindow.webContents = webContents
 }
@@ -12768,7 +12833,9 @@ module.exports = g;
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(Promise, global) {/* harmony import */ var sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch-module-web-view */ "./node_modules/sketch-module-web-view/lib/index.js");
 /* harmony import */ var sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0__);
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } } function _next(value) { step("next", value); } function _throw(err) { step("throw", err); } _next(); }); }; }
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 
 
@@ -12795,388 +12862,23 @@ var options = {
   //transparent: true
   var threadDictionary = NSThread.mainThread().threadDictionary();
   var browserWindow = threadDictionary["overrideitWebView"];
+  log("browserWindow");
+  log(browserWindow);
+  var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+  global.overrides = {};
+  global.symbolsOverrides = {};
+  global.importableSymbolsOverridesDicIdMap = {};
+  var symbolInstance = {};
 
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
       browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html")); //browserWindow.loadURL("http://localhost:8080/");
+      //browserWindow.webContents["document"] = DOCUMENT;
 
-      browserWindow["document"] = Context.document;
       browserWindow.show();
-    }
-  }
-
-  if (browserWindow) {
-    if (Context.actionContext) {
-      var action = Context.actionContext;
-      var context = {};
-      context["document"] = action.document;
-      context["selection"] = action.newSelection;
-    } else {
-      var context = Context;
-    }
-
-    if (browserWindow.document != context.document) {
-      browserWindow.close();
-      threadDictionary.removeObjectForKey("overrideitWebView");
-    } else {
-      var loadOverridesForSelection = function loadOverridesForSelection(symbolInstance) {
-        if (symbolInstance.class() == MSSymbolInstance) {
-          return getOverrides(symbolInstance, String(symbolInstance.objectID()));
-        }
-      };
-
-      var setWindowPosition = function setWindowPosition(context, browserWindow) {
-        var docWindow = context.document.documentWindow();
-        var frame = docWindow.frame();
-        frame.origin.x = frame.origin.x + frame.size.width - 250;
-        frame.size.width = 250;
-        frame.size.height = 600;
-
-        browserWindow._panel.setFrame_display_animate_(frame, false, false);
-      };
-
-      var setImgfromUrl = function setImgfromUrl(url) {
-        var image = NSImage.alloc().initWithContentsOfURL(url);
-        var imageData = MSImageData.alloc().initWithImage(image, true);
-        object.setImage(imageData);
-      }; // setTimeout(function(){
-      //   browserWindow.webContents.executeJavaScript(`getOverrides(hi)`)
-      //  }, 2000);
-      // browserWindow.loadURL('http://localhost:8080/', function(){
-      //     browserWindow.webContents.executeJavaScript(`sayHi("hello")`)
-      //   })
-
-
-      var getOverrides = function getOverrides(symbolInstance) {
-        var overrides = {};
-        var availableOverrides = symbolInstance.availableOverrides();
-
-        for (var i = 0; i < availableOverrides.count(); i++) {
-          if (!availableOverrides[i].affectedLayer().isLocked()) {
-            var overridePoint = availableOverrides[i].overridePoint();
-
-            if (overridePoint.isSymbolOverride() && availableOverrides[i].currentValue()) {
-              var symbolOverrides = getOverridesFromSymbolOverride(availableOverrides[i], {}, true, availableOverrides[i].overridePoint().layerName());
-              overrides = Object.assign({}, overrides, symbolOverrides);
-            } else {
-              var overrideOb = overrideObject(availableOverrides[i], true, "");
-              var override = overrideOb[0];
-              var searchQuery = overrideOb[1];
-              overrides[override.overrideID] = override;
-            }
-          }
-        }
-
-        return sortOverrides(symbolInstance, overrides);
-      };
-
-      var sortOverrides = function sortOverrides(symbolInstance, overrides) {
-        var overridePoints = symbolInstance.overridePoints();
-        var sortedOverrides = {};
-
-        for (var i = 0; i < overridePoints.count(); i++) {
-          sortedOverrides[overridePoints[i]] = overrides[overridePoints[i]];
-        }
-
-        return sortedOverrides;
-      };
-
-      var getOverridesFromSymbolOverride = function getOverridesFromSymbolOverride(symbolOverride, overrides, isParent, searchQueryParent) {
-        var availableOverrides = symbolOverride.children();
-        var overrideOb = overrideObject(symbolOverride, isParent, searchQueryParent);
-        var override = overrideOb[0];
-        var searchQuery = overrideOb[1];
-        overrides[override.overrideID] = override;
-
-        for (var i = 0; i < availableOverrides.count(); i++) {
-          if (!availableOverrides[i].affectedLayer().isLocked()) {
-            var overridePoint = availableOverrides[i].overridePoint();
-
-            if (overridePoint.isSymbolOverride() && availableOverrides[i].currentValue() != "") {
-              var symbolOverrides = getOverridesFromSymbolOverride(availableOverrides[i], overrides, false, searchQuery);
-              overrides = Object.assign({}, overrides, symbolOverrides);
-            } else {
-              var overrideOb = overrideObject(availableOverrides[i], false, searchQueryParent);
-              var override = overrideOb[0];
-              overrides[override.overrideID] = override;
-            }
-          }
-        }
-
-        return overrides;
-      };
-
-      var runWebCallback = function runWebCallback(browserWindow, callbackName) {
-        for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-          args[_key - 2] = arguments[_key];
-        }
-
-        var js = "".concat(callbackName, "(") + args.map(function (arg) {
-          return JSON.stringify(arg);
-        }).join(", ") + ");";
-
-        try {
-          browserWindow.webContents.executeJavaScript(js);
-        } catch (e) {
-          log(e.message);
-          log(e);
-        }
-      };
-
-      var getImageData64 = function getImageData64(data) {
-        var imageData = data;
-        var mimeType = "image/png";
-        return NSString.stringWithFormat("data:%@;base64,%@", mimeType, imageData.base64EncodedStringWithOptions(0));
-      };
-
-      var getImageFromSymbol = function getImageFromSymbol(symbol) {
-        var ancestry = MSImmutableLayerAncestry.ancestryWithMSLayer(symbol);
-        var exportRequest = MSExportRequest.exportRequestsFromLayerAncestry_(ancestry).firstObject();
-        exportRequest.format = "png";
-        var scaleRate = 0;
-
-        if (exportRequest.rect().size.width > exportRequest.rect().size.height) {
-          scaleRate = 20 / exportRequest.rect().size.width;
-        } else {
-          scaleRate = 20 / exportRequest.rect().size.height;
-        }
-
-        exportRequest.scale = scaleRate;
-        var colorSpace = NSColorSpace.sRGBColorSpace();
-        var exporter = MSExporter.exporterForRequest_colorSpace_(exportRequest, colorSpace);
-        var data = exporter.data();
-        return getImageData64(data);
-      };
-
-      var overrideObject = function overrideObject(availableOverride, isParent, searchQuery) {
-        var currentValue = {};
-        var searchQueryResult = String(String(searchQuery) + " " + String(availableOverride.overridePoint().layerName()));
-
-        if (availableOverride.overridePoint().property() == "image") {
-          currentValue["value"] = String(getImageData64(availableOverride.currentValue().data()));
-          currentValue["searchQuery"] = String(searchQueryResult + " image");
-        } else if (availableOverride.overridePoint().property() == "symbolID") {
-          if (availableOverride.currentValue() == "") {
-            var symbolID = availableOverride.defaultValue();
-            currentValue = {};
-            currentValue["name"] = "none";
-            currentValue["symbolID"] = String(symbolID);
-            currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
-            currentValue["Thumbnail"] = "";
-            currentValue["searchQuery"] = String(searchQueryResult + " ");
-          } else {
-            var symbolID = availableOverride.currentValue();
-            var symbol = context.document.documentData().symbolWithID(symbolID);
-            currentValue["name"] = String(symbol.name());
-            currentValue["symbolID"] = String(symbolID);
-            currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
-            currentValue["Thumbnail"] = String(getImageFromSymbol(symbol));
-            currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
-          }
-        } else {
-          currentValue["value"] = String(availableOverride.currentValue());
-          currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.value);
-        }
-
-        var override = {
-          overrideTitle: String(availableOverride.overridePoint().layerName()),
-          overrideType: String(availableOverride.overridePoint().property()),
-          overrideDefualtValue: String(availableOverride.defaultValue()),
-          overrideCurrentValue: currentValue,
-          overrideID: String(availableOverride.overridePoint().name()),
-          overridePoint: availableOverride.overridePoint(),
-          isParent: isParent
-        };
-        return [override, searchQueryResult];
-      };
-
-      var setOverrides = function setOverrides(symbolInstance, overridePoint, value) {
-        var overridePointsPredicate = NSPredicate.predicateWithFormat("(name == %@)", overridePoint);
-        var overrides = symbolInstance.overridePoints();
-        var matchOverride = overrides.filteredArrayUsingPredicate_(overridePointsPredicate);
-        symbolInstance.setValue_forOverridePoint(value, matchOverride[0]); //symbolInstance.setValue_forOverridePoint("WTF",overridePoint)
-      };
-
-      var getImageValue = function getImageValue() {
-        var fileTypes = ["png", "jpg", "tiff"];
-        var panel = NSOpenPanel.openPanel();
-        panel.setAllowsMultipleSelection(0);
-        panel.setCanChooseDirectories(0);
-        panel.setCanChooseFiles(1);
-        panel.setFloatingPanel(1);
-        panel.setMessage("Choose Image");
-        var result = panel.runModalForDirectory_file_types(nil, nil, fileTypes);
-
-        if (result != NSOKButton) {
-          return 0;
-        }
-
-        if (panel.URLs().count() < 1) {
-          return 0;
-        }
-
-        var image = NSImage.alloc().initWithContentsOfURL(panel.URLs()[0]);
-        var imageData = MSImageData.alloc().initWithImage(image);
-        return imageData;
-      };
-
-      var filterlocalSymbols = function filterlocalSymbols(symbolArray, symbol) {
-        var matchSymbolArray = [];
-        var symbolPredicate = NSPredicate.predicateWithFormat("(frame.width == %@) AND (frame.height == %@)", symbol.frame().size().width, symbol.frame().size().height);
-        var matchedSymbols = symbolArray.filteredArrayUsingPredicate_(symbolPredicate);
-
-        for (var i = 0; i < matchedSymbols.count(); i++) {
-          var symbolObj = {};
-          symbolObj["name"] = String(matchedSymbols[i].name());
-          symbolObj["symbolID"] = String(matchedSymbols[i].symbolID());
-          symbolObj["Thumbnail"] = String(getImageFromSymbol(matchedSymbols[i]));
-          matchSymbolArray = matchSymbolArray.concat(symbolObj);
-        }
-
-        return matchSymbolArray;
-      };
-
-      var getLayerByID = function getLayerByID(layerID) {
-        var layer = context.document.documentData().layerWithID(layerID);
-
-        if (layer != null) {
-          return layer;
-        }
-
-        var libraries = AppController.sharedInstance().librariesController().availableLibraries();
-
-        for (var i = 0; i < libraries.count(); i++) {
-          layer = libraries[i].document().layerWithID(layerID);
-
-          if (layer != null) {
-            return layer;
-          }
-        }
-
-        return null;
-      };
-
-      var symbolInLibraryWithIDs = function symbolInLibraryWithIDs(symbolID, libraryID) {
-        var symbol = context.document.documentData().symbolWithID(symbolID);
-
-        if (symbol) {
-          return symbol;
-        } else {
-          if (libraryID == "local") {
-            return context.document.documentData().symbolWithID(symbolID);
-          } else {
-            var libraries = AppController.sharedInstance().librariesController().availableLibraries();
-
-            for (var i = 0; i < libraries.count(); i++) {
-              if (libraries[i].libraryID() == libraryID) {
-                var symbol = libraries[i].document().symbolWithID(symbolID);
-                return localSymbolForSymbol_inLibrary(symbol, libraries[i]);
-              }
-            }
-          }
-        }
-
-        return null;
-      };
-
-      var getMatchedSymbols =
-      /*#__PURE__*/
-      function () {
-        var _ref = _asyncToGenerator(
-        /*#__PURE__*/
-        regeneratorRuntime.mark(function _callee(context, symbol) {
-          var libraries, matchedSymbolsArray, matchedarray, importableSymbolsDictionary, matchedSymbolObj, i, matchedarrayAndDictionary;
-          return regeneratorRuntime.wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  libraries = AppController.sharedInstance().librariesController().availableLibraries();
-                  matchedSymbolsArray = [];
-                  matchedarray = filterlocalSymbols(context.document.documentData().localSymbols(), symbol);
-                  importableSymbolsDictionary = {};
-
-                  if (matchedarray[0] != undefined) {
-                    matchedSymbolObj = {};
-                    matchedSymbolObj["libraryName"] = "localSymbols";
-                    matchedSymbolObj["libraryID"] = "local";
-                    matchedSymbolObj["matchedSymbolArray"] = matchedarray;
-                    matchedSymbolsArray = matchedSymbolsArray.concat(matchedSymbolObj);
-                  }
-
-                  for (i = 0; i < libraries.count(); i++) {
-                    matchedarrayAndDictionary = getMatchedForgienSymbolForLibrary(context, symbol, libraries[i]);
-                    matchedarray = matchedarrayAndDictionary[0];
-                    importableSymbolsDictionary = Object.assign({}, importableSymbolsDictionary, matchedarrayAndDictionary[1]);
-
-                    if (matchedarray) {
-                      if (matchedarray[0] != undefined) {
-                        matchedSymbolObj = {};
-                        matchedSymbolObj["libraryName"] = String(libraries[i].name());
-                        matchedSymbolObj["libraryID"] = String(libraries[i].libraryID());
-                        matchedSymbolObj["matchedSymbolArray"] = matchedarray;
-                        matchedSymbolsArray = matchedSymbolsArray.concat(matchedSymbolObj);
-                      }
-                    }
-                  }
-
-                  return _context.abrupt("return", [matchedSymbolsArray, importableSymbolsDictionary]);
-
-                case 7:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, this);
-        }));
-
-        return function getMatchedSymbols(_x, _x2) {
-          return _ref.apply(this, arguments);
-        };
-      }();
-
-      var getMatchedForgienSymbolForLibrary = function getMatchedForgienSymbolForLibrary(context, symbol, library) {
-        var importableSymbolsDictionary = {};
-        var document = context.document;
-        var provider = MSForeignSymbolProvider.alloc().initWithDocument(document);
-        var collector = MSForeignObjectCollector.alloc().initWithProvider(provider);
-        var shareableObjectRefsMap = collector.buildCollectionWithFilter(null);
-        var libraryPredicate = NSPredicate.predicateWithFormat("(library.libraryID == %@)", library.libraryID());
-        var matchedLibrary = shareableObjectRefsMap.filteredArrayUsingPredicate_(libraryPredicate);
-
-        if (matchedLibrary.count() > 0) {
-          var allSymbols = matchedLibrary[0].objectRefs;
-          var symbolPredicate = NSPredicate.predicateWithFormat("(symbolMaster.frame.width == %@) AND (symbolMaster.frame.height == %@)", symbol.frame().size().width, symbol.frame().size().height);
-          var matchedSymbols = allSymbols.filteredArrayUsingPredicate_(symbolPredicate);
-          var matchSymbolArray = [];
-
-          for (var i = 0; i < matchedSymbols.count(); i++) {
-            var foreignSymbol = matchedSymbols[i].symbolMaster();
-            var symbolObj = {};
-            importableSymbolsDictionary[foreignSymbol.symbolID()] = matchedSymbols[i];
-            symbolObj["name"] = String(foreignSymbol.name());
-            symbolObj["symbolID"] = String(foreignSymbol.symbolID());
-            symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol));
-            matchSymbolArray = matchSymbolArray.concat(symbolObj);
-          }
-
-          return [matchSymbolArray, importableSymbolsDictionary];
-        }
-
-        return [];
-      };
-
-      global.overrides = {};
-      global.symbolsOverrides = {};
-      global.importableSymbolsOverridesDicIdMap = {};
-      var symbolInstance = context.selection[0];
-
-      if (Context.actionContext) {
-        global.overrides = loadOverridesForSelection(symbolInstance);
-      }
-
-      setWindowPosition(context, browserWindow);
-      runWebCallback(browserWindow, "changeSelection", global.overrides, String(symbolInstance.objectID()));
+      symbolInstance = Context.selection[0];
+      setWindowPosition(DOCUMENT, browserWindow);
       browserWindow.webContents.on("openExternal", function (url) {
         NSWorkspace.sharedWorkspace().openURL(NSURL.URLWithString(url));
       });
@@ -13185,7 +12887,9 @@ var options = {
         threadDictionary.removeObjectForKey("overrideitWebView");
       });
       browserWindow.webContents.on("setOverride", function (overridePoint, value, symbolInstanceID) {
-        var symbolInstance = context.document.documentData().layerWithID(symbolInstanceID);
+        log(value);
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+        var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
         setOverrides(symbolInstance, overridePoint, value);
         var valueLength = global.overrides[overridePoint].overrideCurrentValue.value.length();
         var searchQuery = global.overrides[overridePoint].overrideCurrentValue.searchQuery;
@@ -13194,7 +12898,8 @@ var options = {
         runWebCallback(browserWindow, "getOverrides", global.overrides, String(symbolInstance.objectID()));
       });
       browserWindow.webContents.on("setOverrideImage", function (overridePoint, symbolInstanceID) {
-        var symbolInstance = context.document.documentData().layerWithID(symbolInstanceID);
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+        var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
         var value = getImageValue();
 
         if (value != 0) {
@@ -13204,12 +12909,13 @@ var options = {
         }
       });
       browserWindow.webContents.on("getSymbolOverridesData", function (overridesSymbolInstanceID) {
-        var overrideSymbol = getLayerByID(overridesSymbolInstanceID).symbolMaster();
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+        var overrideSymbol = getLayerByID(DOCUMENT, overridesSymbolInstanceID).symbolMaster();
         var overrideSymbolFrame = overrideSymbol.frame().size();
         var overrideSymbolWidthAndHeight = String(overrideSymbolFrame.width) + "-" + String(overrideSymbolFrame.height);
 
         if (!global.symbolsOverrides[overrideSymbolWidthAndHeight]) {
-          getMatchedSymbols(context, overrideSymbol).then(function (getMatchedSymbolArrayAndDic) {
+          getMatchedSymbols(DOCUMENT, context, overrideSymbol).then(function (getMatchedSymbolArrayAndDic) {
             global.symbolsOverrides[overrideSymbolWidthAndHeight] = getMatchedSymbolArrayAndDic[0];
             global.importableSymbolsOverridesDicIdMap[overrideSymbolWidthAndHeight] = getMatchedSymbolArrayAndDic[1];
             runWebCallback(browserWindow, "getSymbolOverrides", global.symbolsOverrides[overrideSymbolWidthAndHeight]);
@@ -13219,40 +12925,423 @@ var options = {
         }
       });
       browserWindow.webContents.on("setSymbolOverride", function (overridePoint, libraryID, value, symbolInstanceID) {
-        var symbolInstance = context.document.documentData().layerWithID(symbolInstanceID);
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+        var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
 
         if (value == "") {
           setOverrides(symbolInstance, overridePoint, "");
         } else {
-          var symbol = symbolInLibraryWithIDs(value, libraryID);
+          var symbol = symbolInLibraryWithIDs(DOCUMENT, value, libraryID);
           setOverrides(symbolInstance, overridePoint, symbol.symbolID());
         }
 
-        var overrides = getOverrides(symbolInstance);
+        var overrides = getOverrides(DOCUMENT, symbolInstance);
         runWebCallback(browserWindow, "getOverrides", overrides, String(symbolInstance.objectID()));
       });
       browserWindow.webContents.on("updateOverride", function () {
-        var overrides = loadOverridesForSelection(symbolInstance);
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+        var overrides = loadOverridesForSelection(DOCUMENT, symbolInstance);
         runWebCallback(browserWindow, "getOverrides", overrides, String(symbolInstance.objectID()));
       });
       browserWindow.on("closed", function () {
         threadDictionary.removeObjectForKey("overrideitWebView");
       });
-      threadDictionary["overrideitWebView"] = browserWindow;
-    }
+    } //threadDictionary["overrideitWebView"] = browserWindow;
+
   }
 
-  function localSymbolForSymbol_inLibrary(symbol, library) {
-    if (MSApplicationMetadata.metadata().appVersion >= 50) {
-      var shareableObjectReference = MSShareableObjectReference.referenceForShareableObject_inLibrary(symbol, library);
-      var importedSymbol = AppController.sharedInstance().librariesController().importShareableObjectReference_intoDocument(shareableObjectReference, context.document.documentData());
+  if (browserWindow) {
+    if (Context.actionContext) {
+      var action = Context.actionContext;
+      var context = {};
+      context["selection"] = action.newSelection;
     } else {
-      var importedSymbol = AppController.sharedInstance().librariesController().importForeignSymbol_fromLibrary_intoDocument_(symbol, library, context.document.documentData());
+      var context = Context;
+    } // if (browserWindow.webContents.document != DOCUMENT) {
+    //   browserWindow.close();
+    //   threadDictionary.removeObjectForKey("overrideitWebView");
+    // } else {
+
+
+    symbolInstance = context.selection[0];
+    log("global");
+    log(global);
+
+    if (Context.actionContext) {
+      global.overrides = loadOverridesForSelection(DOCUMENT, symbolInstance);
     }
 
-    return importedSymbol.symbolMaster();
+    log("overrides");
+    log(symbolInstance);
+    log(global.overrides);
+    log(browserWindow.webContents);
+    runWebCallback(browserWindow, "changeSelection", global.overrides, String(symbolInstance.objectID()));
+    log("selection");
+    log(symbolInstance.objectID()); //threadDictionary["overrideitWebView"] = browserWindow;
+    //}
   }
 });
+
+function loadOverridesForSelection(DOCUMENT, symbolInstance) {
+  if (symbolInstance.class() == MSSymbolInstance) {
+    return getOverrides(DOCUMENT, symbolInstance);
+  }
+}
+
+function setWindowPosition(DOCUMENT, browserWindow) {
+  var docWindow = DOCUMENT.documentWindow();
+  var frame = docWindow.frame();
+  frame.origin.x = frame.origin.x + frame.size.width - 250;
+  frame.size.width = 250;
+  frame.size.height = 600;
+
+  browserWindow._panel.setFrame_display_animate_(frame, false, false);
+}
+
+function setImgfromUrl(url) {
+  var image = NSImage.alloc().initWithContentsOfURL(url);
+  var imageData = MSImageData.alloc().initWithImage(image, true);
+  object.setImage(imageData);
+} // setTimeout(function(){
+//   browserWindow.webContents.executeJavaScript(`getOverrides(hi)`)
+//  }, 2000);
+// browserWindow.loadURL('http://localhost:8080/', function(){
+//     browserWindow.webContents.executeJavaScript(`sayHi("hello")`)
+//   })
+
+
+function getOverrides(DOCUMENT, symbolInstance) {
+  var overrides = {};
+  var availableOverrides = symbolInstance.availableOverrides();
+
+  for (var i = 0; i < availableOverrides.count(); i++) {
+    if (!availableOverrides[i].affectedLayer().isLocked()) {
+      var overridePoint = availableOverrides[i].overridePoint();
+
+      if (overridePoint.isSymbolOverride() && availableOverrides[i].currentValue()) {
+        var symbolOverrides = getOverridesFromSymbolOverride(DOCUMENT, availableOverrides[i], {}, true, availableOverrides[i].overridePoint().layerName());
+        overrides = Object.assign({}, overrides, symbolOverrides);
+      } else {
+        var overrideOb = overrideObject(DOCUMENT, availableOverrides[i], true, "");
+        var override = overrideOb[0];
+        var searchQuery = overrideOb[1];
+        overrides[override.overrideID] = override;
+      }
+    }
+  }
+
+  return sortOverrides(symbolInstance, overrides);
+}
+
+function sortOverrides(symbolInstance, overrides) {
+  var overridePoints = symbolInstance.overridePoints();
+  var sortedOverrides = {};
+
+  for (var i = 0; i < overridePoints.count(); i++) {
+    sortedOverrides[overridePoints[i]] = overrides[overridePoints[i]];
+  }
+
+  return sortedOverrides;
+}
+
+function getOverridesFromSymbolOverride(DOCUMENT, symbolOverride, overrides, isParent, searchQueryParent) {
+  var availableOverrides = symbolOverride.children();
+  var overrideOb = overrideObject(DOCUMENT, symbolOverride, isParent, searchQueryParent);
+  var override = overrideOb[0];
+  var searchQuery = overrideOb[1];
+  overrides[override.overrideID] = override;
+
+  for (var i = 0; i < availableOverrides.count(); i++) {
+    if (!availableOverrides[i].affectedLayer().isLocked()) {
+      var overridePoint = availableOverrides[i].overridePoint();
+
+      if (overridePoint.isSymbolOverride() && availableOverrides[i].currentValue() != "") {
+        var symbolOverrides = getOverridesFromSymbolOverride(DOCUMENT, availableOverrides[i], overrides, false, searchQuery);
+        overrides = Object.assign({}, overrides, symbolOverrides);
+      } else {
+        var overrideOb = overrideObject(DOCUMENT, availableOverrides[i], false, searchQueryParent);
+        var override = overrideOb[0];
+        overrides[override.overrideID] = override;
+      }
+    }
+  }
+
+  return overrides;
+}
+
+function runWebCallback(browserWindow, callbackName) {
+  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
+  }
+
+  var js = "".concat(callbackName, "(") + args.map(function (arg) {
+    return JSON.stringify(arg);
+  }).join(", ") + ");";
+
+  try {
+    browserWindow.webContents.executeJavaScript(js);
+  } catch (e) {
+    log(e.message);
+    log(e);
+  }
+}
+
+function getImageData64(data) {
+  var imageData = data;
+  var mimeType = "image/png";
+  return NSString.stringWithFormat("data:%@;base64,%@", mimeType, imageData.base64EncodedStringWithOptions(0));
+}
+
+function getImageFromSymbol(symbol) {
+  var ancestry = MSImmutableLayerAncestry.ancestryWithMSLayer(symbol);
+  var exportRequest = MSExportRequest.exportRequestsFromLayerAncestry_(ancestry).firstObject();
+  exportRequest.format = "png";
+  var scaleRate = 0;
+
+  if (exportRequest.rect().size.width > exportRequest.rect().size.height) {
+    scaleRate = 20 / exportRequest.rect().size.width;
+  } else {
+    scaleRate = 20 / exportRequest.rect().size.height;
+  }
+
+  exportRequest.scale = scaleRate;
+  var colorSpace = NSColorSpace.sRGBColorSpace();
+  var exporter = MSExporter.exporterForRequest_colorSpace_(exportRequest, colorSpace);
+  var data = exporter.data();
+  return getImageData64(data);
+}
+
+function overrideObject(DOCUMENT, availableOverride, isParent, searchQuery) {
+  var currentValue = {};
+  var searchQueryResult = String(String(searchQuery) + " " + String(availableOverride.overridePoint().layerName()));
+
+  if (availableOverride.overridePoint().property() == "image") {
+    currentValue["value"] = String(getImageData64(availableOverride.currentValue().data()));
+    currentValue["searchQuery"] = String(searchQueryResult + " image");
+  } else if (availableOverride.overridePoint().property() == "symbolID") {
+    if (availableOverride.currentValue() == "") {
+      var symbolID = availableOverride.defaultValue();
+      currentValue = {};
+      currentValue["name"] = "none";
+      currentValue["symbolID"] = String(symbolID);
+      currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
+      currentValue["Thumbnail"] = "";
+      currentValue["searchQuery"] = String(searchQueryResult + " ");
+    } else {
+      var symbolID = availableOverride.currentValue();
+      var symbol = DOCUMENT.documentData().symbolWithID(symbolID);
+      currentValue["name"] = String(symbol.name());
+      currentValue["symbolID"] = String(symbolID);
+      currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
+      currentValue["Thumbnail"] = String(getImageFromSymbol(symbol));
+      currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
+    }
+  } else {
+    currentValue["value"] = String(availableOverride.currentValue());
+    currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.value);
+  }
+
+  var override = {
+    overrideTitle: String(availableOverride.overridePoint().layerName()),
+    overrideType: String(availableOverride.overridePoint().property()),
+    overrideDefualtValue: String(availableOverride.defaultValue()),
+    overrideCurrentValue: currentValue,
+    overrideID: String(availableOverride.overridePoint().name()),
+    overridePoint: availableOverride.overridePoint(),
+    isParent: isParent
+  };
+  return [override, searchQueryResult];
+}
+
+function setOverrides(symbolInstance, overridePoint, value) {
+  var overridePointsPredicate = NSPredicate.predicateWithFormat("(name == %@)", overridePoint);
+  var overrides = symbolInstance.overridePoints();
+  var matchOverride = overrides.filteredArrayUsingPredicate_(overridePointsPredicate);
+  symbolInstance.setValue_forOverridePoint(value, matchOverride[0]); //symbolInstance.setValue_forOverridePoint("WTF",overridePoint)
+}
+
+function getImageValue() {
+  var fileTypes = ["png", "jpg", "tiff"];
+  var panel = NSOpenPanel.openPanel();
+  panel.setAllowsMultipleSelection(0);
+  panel.setCanChooseDirectories(0);
+  panel.setCanChooseFiles(1);
+  panel.setFloatingPanel(1);
+  panel.setMessage("Choose Image");
+  var result = panel.runModalForDirectory_file_types(nil, nil, fileTypes);
+
+  if (result != NSOKButton) {
+    return 0;
+  }
+
+  if (panel.URLs().count() < 1) {
+    return 0;
+  }
+
+  var image = NSImage.alloc().initWithContentsOfURL(panel.URLs()[0]);
+  var imageData = MSImageData.alloc().initWithImage(image);
+  return imageData;
+}
+
+function filterlocalSymbols(symbolArray, symbol) {
+  var matchSymbolArray = [];
+  var symbolPredicate = NSPredicate.predicateWithFormat("(frame.width == %@) AND (frame.height == %@)", symbol.frame().size().width, symbol.frame().size().height);
+  var matchedSymbols = symbolArray.filteredArrayUsingPredicate_(symbolPredicate);
+
+  for (var i = 0; i < matchedSymbols.count(); i++) {
+    var symbolObj = {};
+    symbolObj["name"] = String(matchedSymbols[i].name());
+    symbolObj["symbolID"] = String(matchedSymbols[i].symbolID());
+    symbolObj["Thumbnail"] = String(getImageFromSymbol(matchedSymbols[i]));
+    matchSymbolArray = matchSymbolArray.concat(symbolObj);
+  }
+
+  return matchSymbolArray;
+}
+
+function getLayerByID(DOCUMENT, layerID) {
+  var layer = DOCUMENT.documentData().layerWithID(layerID);
+
+  if (layer != null) {
+    return layer;
+  }
+
+  var libraries = AppController.sharedInstance().librariesController().availableLibraries();
+
+  for (var i = 0; i < libraries.count(); i++) {
+    layer = libraries[i].document().layerWithID(layerID);
+
+    if (layer != null) {
+      return layer;
+    }
+  }
+
+  return null;
+}
+
+function symbolInLibraryWithIDs(DOCUMENT, symbolID, libraryID) {
+  var symbol = DOCUMENT.documentData().symbolWithID(symbolID);
+
+  if (symbol) {
+    return symbol;
+  } else {
+    if (libraryID == "local") {
+      return DOCUMENT.documentData().symbolWithID(symbolID);
+    } else {
+      var libraries = AppController.sharedInstance().librariesController().availableLibraries();
+
+      for (var i = 0; i < libraries.count(); i++) {
+        if (libraries[i].libraryID() == libraryID) {
+          var symbol = libraries[i].document().symbolWithID(symbolID);
+          return localSymbolForSymbol_inLibrary(DOCUMENT, symbol, libraries[i]);
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function getMatchedSymbols(_x, _x2, _x3) {
+  return _getMatchedSymbols.apply(this, arguments);
+}
+
+function _getMatchedSymbols() {
+  _getMatchedSymbols = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee(DOCUMENT, context, symbol) {
+    var libraries, matchedSymbolsArray, matchedarray, importableSymbolsDictionary, matchedSymbolObj, i, matchedarrayAndDictionary;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            libraries = AppController.sharedInstance().librariesController().availableLibraries();
+            matchedSymbolsArray = [];
+            matchedarray = filterlocalSymbols(DOCUMENT.documentData().localSymbols(), symbol);
+            importableSymbolsDictionary = {};
+
+            if (matchedarray[0] != undefined) {
+              matchedSymbolObj = {};
+              matchedSymbolObj["libraryName"] = "localSymbols";
+              matchedSymbolObj["libraryID"] = "local";
+              matchedSymbolObj["matchedSymbolArray"] = matchedarray;
+              matchedSymbolsArray = matchedSymbolsArray.concat(matchedSymbolObj);
+            }
+
+            for (i = 0; i < libraries.count(); i++) {
+              matchedarrayAndDictionary = getMatchedForgienSymbolForLibrary(DOCUMENT, symbol, libraries[i]);
+              matchedarray = matchedarrayAndDictionary[0];
+              importableSymbolsDictionary = Object.assign({}, importableSymbolsDictionary, matchedarrayAndDictionary[1]);
+
+              if (matchedarray) {
+                if (matchedarray[0] != undefined) {
+                  matchedSymbolObj = {};
+                  matchedSymbolObj["libraryName"] = String(libraries[i].name());
+                  matchedSymbolObj["libraryID"] = String(libraries[i].libraryID());
+                  matchedSymbolObj["matchedSymbolArray"] = matchedarray;
+                  matchedSymbolsArray = matchedSymbolsArray.concat(matchedSymbolObj);
+                }
+              }
+            }
+
+            return _context.abrupt("return", [matchedSymbolsArray, importableSymbolsDictionary]);
+
+          case 7:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+  return _getMatchedSymbols.apply(this, arguments);
+}
+
+function getMatchedForgienSymbolForLibrary(DOCUMENT, symbol, library) {
+  var importableSymbolsDictionary = {};
+  var document = DOCUMENT;
+  var provider = MSForeignSymbolProvider.alloc().initWithDocument(document);
+  var collector = MSForeignObjectCollector.alloc().initWithProvider(provider);
+  var shareableObjectRefsMap = collector.buildCollectionWithFilter(null);
+  var libraryPredicate = NSPredicate.predicateWithFormat("(library.libraryID == %@)", library.libraryID());
+  var matchedLibrary = shareableObjectRefsMap.filteredArrayUsingPredicate_(libraryPredicate);
+
+  if (matchedLibrary.count() > 0) {
+    var allSymbols = matchedLibrary[0].objectRefs;
+    var symbolPredicate = NSPredicate.predicateWithFormat("(symbolMaster.frame.width == %@) AND (symbolMaster.frame.height == %@)", symbol.frame().size().width, symbol.frame().size().height);
+    var matchedSymbols = allSymbols.filteredArrayUsingPredicate_(symbolPredicate);
+    var matchSymbolArray = [];
+
+    for (var i = 0; i < matchedSymbols.count(); i++) {
+      var foreignSymbol = matchedSymbols[i].symbolMaster();
+      var symbolObj = {};
+      importableSymbolsDictionary[foreignSymbol.symbolID()] = matchedSymbols[i];
+      symbolObj["name"] = String(foreignSymbol.name());
+      symbolObj["symbolID"] = String(foreignSymbol.symbolID());
+      symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol));
+      matchSymbolArray = matchSymbolArray.concat(symbolObj);
+    }
+
+    return [matchSymbolArray, importableSymbolsDictionary];
+  }
+
+  return [];
+}
+
+function localSymbolForSymbol_inLibrary(DOCUMENT, symbol, library) {
+  if (MSApplicationMetadata.metadata().appVersion >= 50) {
+    var shareableObjectReference = MSShareableObjectReference.referenceForShareableObject_inLibrary(symbol, library);
+    var importedSymbol = AppController.sharedInstance().librariesController().importShareableObjectReference_intoDocument(shareableObjectReference, DOCUMENT.documentData());
+  } else {
+    var importedSymbol = AppController.sharedInstance().librariesController().importForeignSymbol_fromLibrary_intoDocument_(symbol, library, DOCUMENT.documentData());
+  }
+
+  return importedSymbol.symbolMaster();
+} // NSApplication.sharedApplication().windows().forEach(w1 => {
+//   if(w1.document && w1.document()) {
+//     log(w1.document());
+//   }
+// });
+// log(NSApplication.sharedApplication().mainWindow().document())
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/promise-polyfill/lib/index.js */ "./node_modules/promise-polyfill/lib/index.js"), __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ })
