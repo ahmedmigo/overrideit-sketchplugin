@@ -12791,6 +12791,43 @@ module.exports = function buildAPI(browserWindow, panel, webview) {
 
 /***/ }),
 
+/***/ "./node_modules/sketch-module-web-view/remote.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/sketch-module-web-view/remote.js ***!
+  \*******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* globals NSThread */
+var BrowserWindow = __webpack_require__(/*! ./lib */ "./node_modules/sketch-module-web-view/lib/index.js")
+
+var threadDictionary = NSThread.mainThread().threadDictionary()
+
+module.exports.getWebview = function getWebview(identifier) {
+  var panel = threadDictionary[identifier]
+  if (!panel) {
+    return undefined
+  }
+  return BrowserWindow.fromPanel(panel, identifier)
+}
+
+module.exports.isWebviewPresent = function isWebviewPresent(identifier) {
+  return !!threadDictionary[identifier]
+}
+
+module.exports.sendToWebview = function sendToWebview(identifier, evalString) {
+  var browserView = module.exports.getWebview(identifier)
+
+  if (!browserView) {
+    throw new Error('Webview ' + identifier + ' not found')
+  }
+
+  return browserView.webContents.executeJavaScript(evalString)
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/webpack/buildin/global.js":
 /*!***********************************!*\
   !*** (webpack)/buildin/global.js ***!
@@ -12833,9 +12870,12 @@ module.exports = g;
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(Promise, global) {/* harmony import */ var sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch-module-web-view */ "./node_modules/sketch-module-web-view/lib/index.js");
 /* harmony import */ var sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! sketch-module-web-view/remote */ "./node_modules/sketch-module-web-view/remote.js");
+/* harmony import */ var sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__);
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 
@@ -13079,7 +13119,10 @@ function runWebCallback(browserWindow, callbackName) {
   }).join(", ") + ");";
 
   try {
-    browserWindow.webContents.executeJavaScript(js);
+    if (Object(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__["isWebviewPresent"])("overrideitWebView")) {
+      Object(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__["sendToWebview"])("overrideitWebView", js);
+    } //browserWindow.webContents.executeJavaScript(js);
+
   } catch (e) {
     log(e.message);
     log(e);
