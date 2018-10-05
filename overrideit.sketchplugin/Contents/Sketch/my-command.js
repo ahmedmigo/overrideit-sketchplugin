@@ -12913,7 +12913,11 @@ var options = {
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html")); //browserWindow.loadURL("http://localhost:8080/");
+      browserWindow.loadURL("http://overrideit.migoart.com");
+      browserWindow.once("did-fail-load", function () {
+        return browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
+      }); // browserWindow.loadURL(require("../assets/index.html"));
+      //browserWindow.loadURL("http://localhost:8080/");
       //browserWindow.webContents["document"] = DOCUMENT;
 
       browserWindow.show();
