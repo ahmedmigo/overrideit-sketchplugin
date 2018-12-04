@@ -12902,25 +12902,32 @@ var options = {
   //transparent: true
   var threadDictionary = NSThread.mainThread().threadDictionary();
   var browserWindow = threadDictionary["overrideitWebView"];
-  log("browserWindow");
+  log("browserWindow 🎉 ");
   log(browserWindow);
   var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
   global.overrides = {};
   global.symbolsOverrides = {};
+  var textSylesObj = getTextSyles(DOCUMENT);
+  global.docTextStyle = textSylesObj[0];
+  global.textSylesMapID = textSylesObj[1];
+  var layerSylesObj = getLayerSyles(DOCUMENT);
+  global.docLayerStyle = layerSylesObj[0];
+  global.layerSylesMapID = layerSylesObj[1];
   global.importableSymbolsOverridesDicIdMap = {};
   var symbolInstance = {};
 
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("http://overrideit.migoart.com");
-      browserWindow.once("did-fail-load", function () {
-        return browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
+      browserWindow.loadURL("http://overrideit.migoart.com/?=1221"); // browserWindow.loadURL(require("../assets/index.html"));
+
+      browserWindow.webContents.on("did-fail-load", function () {
+        log("📵 not loaded");
+        browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
       }); // browserWindow.loadURL(require("../assets/index.html"));
       //browserWindow.loadURL("http://localhost:8080/");
       //browserWindow.webContents["document"] = DOCUMENT;
 
-      browserWindow.show();
       symbolInstance = Context.selection[0];
       setWindowPosition(DOCUMENT, browserWindow);
       browserWindow.webContents.on("openExternal", function (url) {
@@ -12939,7 +12946,7 @@ var options = {
         var searchQuery = global.overrides[overridePoint].overrideCurrentValue.searchQuery;
         global.overrides[overridePoint].overrideCurrentValue.value = value;
         global.overrides[overridePoint].overrideCurrentValue.searchQuery = searchQuery.substring(0, searchQuery.length() - valueLength - 1) + value;
-        runWebCallback(browserWindow, "getOverrides", global.overrides, String(symbolInstance.objectID()));
+        runWebCallback("getOverrides", global.overrides, String(symbolInstance.objectID()));
       });
       browserWindow.webContents.on("setOverrideImage", function (overridePoint, symbolInstanceID) {
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
@@ -12949,7 +12956,7 @@ var options = {
         if (value != 0) {
           setOverrides(symbolInstance, overridePoint, value);
           global.overrides[overridePoint].overrideCurrentValue.value = String(getImageData64(value.data()));
-          runWebCallback(browserWindow, "getOverrides", global.overrides, String(symbolInstance.objectID()));
+          runWebCallback("getOverrides", global.overrides, String(symbolInstance.objectID()));
         }
       });
       browserWindow.webContents.on("getSymbolOverridesData", function (overridesSymbolInstanceID) {
@@ -12962,36 +12969,76 @@ var options = {
           getMatchedSymbols(DOCUMENT, context, overrideSymbol).then(function (getMatchedSymbolArrayAndDic) {
             global.symbolsOverrides[overrideSymbolWidthAndHeight] = getMatchedSymbolArrayAndDic[0];
             global.importableSymbolsOverridesDicIdMap[overrideSymbolWidthAndHeight] = getMatchedSymbolArrayAndDic[1];
-            runWebCallback(browserWindow, "getSymbolOverrides", global.symbolsOverrides[overrideSymbolWidthAndHeight]);
+            runWebCallback("getSymbolOverrides", global.symbolsOverrides[overrideSymbolWidthAndHeight]);
           });
         } else {
-          runWebCallback(browserWindow, "getSymbolOverrides", global.symbolsOverrides[overrideSymbolWidthAndHeight]);
+          runWebCallback("getSymbolOverrides", global.symbolsOverrides[overrideSymbolWidthAndHeight]);
         }
       });
-      browserWindow.webContents.on("setSymbolOverride", function (overridePoint, libraryID, value, symbolInstanceID) {
+      browserWindow.webContents.on("getTextStyle", function () {
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+
+        if (!global.docTextStyle) {
+          global.docTextStyle = getTextSyles(DOCUMENT);
+        } else {
+          runWebCallback("getTextStyle", global.docTextStyle);
+        }
+      });
+      browserWindow.webContents.on("getLayerStyle", function () {
+        var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
+
+        if (!global.docLayerStyle) {
+          global.docLayerStyle = getLayerSyles(DOCUMENT);
+        } else {
+          runWebCallback("getLayerStyle", global.docLayerStyle);
+        }
+      });
+      browserWindow.webContents.on("setSymbolOverride", function (overridePoint, libraryID, value, symbolInstanceID, type) {
+        log("🍕");
+        log(value);
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
         var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
 
-        if (value == "") {
-          setOverrides(symbolInstance, overridePoint, "");
-        } else {
-          var symbol = symbolInLibraryWithIDs(DOCUMENT, value, libraryID);
-          setOverrides(symbolInstance, overridePoint, symbol.symbolID());
+        if (type == "symbolID") {
+          if (value == "") {
+            setOverrides(symbolInstance, overridePoint, "");
+          } else {
+            var symbol = symbolInLibraryWithIDs(DOCUMENT, value, libraryID);
+            setOverrides(symbolInstance, overridePoint, symbol.symbolID());
+          }
+        } else if (type == "layerStyle") {
+          var style = layerStyleInLibraryWithIDs(DOCUMENT, value, libraryID);
+          var styleID = style.objectID();
+          log(styleID);
+          setOverrides(symbolInstance, overridePoint, styleID);
+          global.layerSylesMapID[styleID] = style.name();
+        } else if (type == "textStyle") {
+          var style = textStyleInLibraryWithIDs(DOCUMENT, value, libraryID);
+          var styleID = style.objectID();
+          log(styleID);
+          setOverrides(symbolInstance, overridePoint, styleID);
+          global.textSylesMapID[styleID] = style.name();
         }
 
         var overrides = getOverrides(DOCUMENT, symbolInstance);
-        runWebCallback(browserWindow, "getOverrides", overrides, String(symbolInstance.objectID()));
+        runWebCallback("getOverrides", overrides, String(symbolInstance.objectID()));
       });
       browserWindow.webContents.on("updateOverride", function () {
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
         var overrides = loadOverridesForSelection(DOCUMENT, symbolInstance);
-        runWebCallback(browserWindow, "getOverrides", overrides, String(symbolInstance.objectID()));
+        runWebCallback("getOverrides", overrides, String(symbolInstance.objectID()));
+      });
+      browserWindow.once("ready-to-show", function () {
+        browserWindow.show();
+
+        if (isSketchDark()) {
+          runWebCallback("changetoDark");
+        }
       });
       browserWindow.on("closed", function () {
         threadDictionary.removeObjectForKey("overrideitWebView");
       });
-    } //threadDictionary["overrideitWebView"] = browserWindow;
-
+    }
   }
 
   if (browserWindow) {
@@ -13001,28 +13048,15 @@ var options = {
       context["selection"] = action.newSelection;
     } else {
       var context = Context;
-    } // if (browserWindow.webContents.document != DOCUMENT) {
-    //   browserWindow.close();
-    //   threadDictionary.removeObjectForKey("overrideitWebView");
-    // } else {
-
+    }
 
     symbolInstance = context.selection[0];
-    log("global");
-    log(global);
 
     if (Context.actionContext) {
       global.overrides = loadOverridesForSelection(DOCUMENT, symbolInstance);
     }
 
-    log("overrides");
-    log(symbolInstance);
-    log(global.overrides);
-    log(browserWindow.webContents);
-    runWebCallback(browserWindow, "changeSelection", global.overrides, String(symbolInstance.objectID()));
-    log("selection");
-    log(symbolInstance.objectID()); //threadDictionary["overrideitWebView"] = browserWindow;
-    //}
+    runWebCallback("changeSelection", global.overrides, String(symbolInstance.objectID()));
   }
 });
 
@@ -13046,13 +13080,7 @@ function setImgfromUrl(url) {
   var image = NSImage.alloc().initWithContentsOfURL(url);
   var imageData = MSImageData.alloc().initWithImage(image, true);
   object.setImage(imageData);
-} // setTimeout(function(){
-//   browserWindow.webContents.executeJavaScript(`getOverrides(hi)`)
-//  }, 2000);
-// browserWindow.loadURL('http://localhost:8080/', function(){
-//     browserWindow.webContents.executeJavaScript(`sayHi("hello")`)
-//   })
-
+}
 
 function getOverrides(DOCUMENT, symbolInstance) {
   var overrides = {};
@@ -13068,7 +13096,6 @@ function getOverrides(DOCUMENT, symbolInstance) {
       } else {
         var overrideOb = overrideObject(DOCUMENT, availableOverrides[i], true, "");
         var override = overrideOb[0];
-        var searchQuery = overrideOb[1];
         overrides[override.overrideID] = override;
       }
     }
@@ -13113,9 +13140,9 @@ function getOverridesFromSymbolOverride(DOCUMENT, symbolOverride, overrides, isP
   return overrides;
 }
 
-function runWebCallback(browserWindow, callbackName) {
-  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    args[_key - 2] = arguments[_key];
+function runWebCallback(callbackName) {
+  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
   }
 
   var js = "".concat(callbackName, "(") + args.map(function (arg) {
@@ -13125,8 +13152,7 @@ function runWebCallback(browserWindow, callbackName) {
   try {
     if (Object(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__["isWebviewPresent"])("overrideitWebView")) {
       Object(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__["sendToWebview"])("overrideitWebView", js);
-    } //browserWindow.webContents.executeJavaScript(js);
-
+    }
   } catch (e) {
     log(e.message);
     log(e);
@@ -13167,22 +13193,56 @@ function overrideObject(DOCUMENT, availableOverride, isParent, searchQuery) {
     currentValue["searchQuery"] = String(searchQueryResult + " image");
   } else if (availableOverride.overridePoint().property() == "symbolID") {
     if (availableOverride.currentValue() == "") {
-      var symbolID = availableOverride.defaultValue();
+      var objectID = availableOverride.defaultValue();
       currentValue = {};
       currentValue["name"] = "none";
-      currentValue["symbolID"] = String(symbolID);
+      currentValue["objectID"] = String(objectID);
       currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
       currentValue["Thumbnail"] = "";
       currentValue["searchQuery"] = String(searchQueryResult + " ");
     } else {
-      var symbolID = availableOverride.currentValue();
-      var symbol = DOCUMENT.documentData().symbolWithID(symbolID);
+      var objectID = availableOverride.currentValue();
+      var symbol = DOCUMENT.documentData().symbolWithID(objectID);
       currentValue["name"] = String(symbol.name());
-      currentValue["symbolID"] = String(symbolID);
+      currentValue["objectID"] = String(objectID);
       currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
       currentValue["Thumbnail"] = String(getImageFromSymbol(symbol));
       currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
     }
+  } else if (availableOverride.overridePoint().property() == "layerStyle") {
+    var objectID = availableOverride.currentValue();
+
+    if (global.layerSylesMapID[objectID] != undefined) {
+      var styleName = global.layerSylesMapID[objectID];
+    } else if (DOCUMENT.documentData().layerStyleWithID(objectID)) {
+      var styleName = DOCUMENT.documentData().layerStyleWithID(objectID).name();
+    } else {
+      var styleName = "undefined - layerStyle";
+    }
+
+    currentValue["name"] = String(styleName);
+    currentValue["objectID"] = String(objectID);
+    currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
+    currentValue["Thumbnail"] = "";
+    currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
+    isParent = false;
+  } else if (availableOverride.overridePoint().property() == "textStyle") {
+    var objectID = availableOverride.currentValue();
+
+    if (global.textSylesMapID[objectID] != undefined) {
+      var styleName = global.textSylesMapID[objectID];
+    } else if (DOCUMENT.documentData().textStyleWithID(objectID)) {
+      var styleName = DOCUMENT.documentData().textStyleWithID(objectID).name();
+    } else {
+      var styleName = "undefined - layerStyle";
+    }
+
+    currentValue["name"] = String(styleName);
+    currentValue["objectID"] = String(objectID);
+    currentValue["layerID"] = String(availableOverride.overridePoint().layerID());
+    currentValue["Thumbnail"] = "";
+    currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.name);
+    isParent = false;
   } else {
     currentValue["value"] = String(availableOverride.currentValue());
     currentValue["searchQuery"] = String(searchQueryResult + " " + currentValue.value);
@@ -13204,7 +13264,7 @@ function setOverrides(symbolInstance, overridePoint, value) {
   var overridePointsPredicate = NSPredicate.predicateWithFormat("(name == %@)", overridePoint);
   var overrides = symbolInstance.overridePoints();
   var matchOverride = overrides.filteredArrayUsingPredicate_(overridePointsPredicate);
-  symbolInstance.setValue_forOverridePoint(value, matchOverride[0]); //symbolInstance.setValue_forOverridePoint("WTF",overridePoint)
+  symbolInstance.setValue_forOverridePoint(value, matchOverride[0]);
 }
 
 function getImageValue() {
@@ -13238,7 +13298,7 @@ function filterlocalSymbols(symbolArray, symbol) {
   for (var i = 0; i < matchedSymbols.count(); i++) {
     var symbolObj = {};
     symbolObj["name"] = String(matchedSymbols[i].name());
-    symbolObj["symbolID"] = String(matchedSymbols[i].symbolID());
+    symbolObj["objectID"] = String(matchedSymbols[i].symbolID());
     symbolObj["Thumbnail"] = String(getImageFromSymbol(matchedSymbols[i]));
     matchSymbolArray = matchSymbolArray.concat(symbolObj);
   }
@@ -13280,7 +13340,55 @@ function symbolInLibraryWithIDs(DOCUMENT, symbolID, libraryID) {
       for (var i = 0; i < libraries.count(); i++) {
         if (libraries[i].libraryID() == libraryID) {
           var symbol = libraries[i].document().symbolWithID(symbolID);
-          return localSymbolForSymbol_inLibrary(DOCUMENT, symbol, libraries[i]);
+          return localSymbolForSymbol_inLibrary(DOCUMENT, symbol, libraries[i]).symbolMaster();
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function layerStyleInLibraryWithIDs(DOCUMENT, styleID, libraryID) {
+  var style = DOCUMENT.documentData().layerStyleWithID(styleID);
+
+  if (style) {
+    return style;
+  } else {
+    if (libraryID == "local") {
+      return DOCUMENT.documentData().layerStyleWithID(styleID);
+    } else {
+      var libraries = AppController.sharedInstance().librariesController().availableLibraries();
+
+      for (var i = 0; i < libraries.count(); i++) {
+        if (libraries[i].libraryID() == libraryID) {
+          style = libraries[i].document().layerStyleWithID(styleID);
+          log(style);
+          return localSymbolForSymbol_inLibrary(DOCUMENT, style, libraries[i]).localObject();
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function textStyleInLibraryWithIDs(DOCUMENT, styleID, libraryID) {
+  var style = DOCUMENT.documentData().textStyleWithID(styleID);
+
+  if (style) {
+    return style;
+  } else {
+    if (libraryID == "local") {
+      return DOCUMENT.documentData().textStyleWithID(styleID);
+    } else {
+      var libraries = AppController.sharedInstance().librariesController().availableLibraries();
+
+      for (var i = 0; i < libraries.count(); i++) {
+        if (libraries[i].libraryID() == libraryID) {
+          style = libraries[i].document().textStyleWithID(styleID);
+          log(style);
+          return localSymbolForSymbol_inLibrary(DOCUMENT, style, libraries[i]).localObject();
         }
       }
     }
@@ -13363,7 +13471,7 @@ function getMatchedForgienSymbolForLibrary(DOCUMENT, symbol, library) {
       var symbolObj = {};
       importableSymbolsDictionary[foreignSymbol.symbolID()] = matchedSymbols[i];
       symbolObj["name"] = String(foreignSymbol.name());
-      symbolObj["symbolID"] = String(foreignSymbol.symbolID());
+      symbolObj["objectID"] = String(foreignSymbol.symbolID());
       symbolObj["Thumbnail"] = String(getImageFromSymbol(foreignSymbol));
       matchSymbolArray = matchSymbolArray.concat(symbolObj);
     }
@@ -13377,12 +13485,213 @@ function getMatchedForgienSymbolForLibrary(DOCUMENT, symbol, library) {
 function localSymbolForSymbol_inLibrary(DOCUMENT, symbol, library) {
   if (MSApplicationMetadata.metadata().appVersion >= 50) {
     var shareableObjectReference = MSShareableObjectReference.referenceForShareableObject_inLibrary(symbol, library);
+    log(shareableObjectReference);
     var importedSymbol = AppController.sharedInstance().librariesController().importShareableObjectReference_intoDocument(shareableObjectReference, DOCUMENT.documentData());
   } else {
     var importedSymbol = AppController.sharedInstance().librariesController().importForeignSymbol_fromLibrary_intoDocument_(symbol, library, DOCUMENT.documentData());
   }
 
-  return importedSymbol.symbolMaster();
+  return importedSymbol;
+}
+
+function getLayerSyles(DOCUMENT) {
+  var layerSylesMapID = {};
+  var libraries = AppController.sharedInstance().librariesController().availableLibraries();
+  var sylesArray = [];
+  var localLayerSytlesObj = getLocalLayerSytles(DOCUMENT);
+  var localStylesArray = localLayerSytlesObj[0];
+  layerSylesMapID = localLayerSytlesObj[1];
+
+  if (localStylesArray[0] != undefined) {
+    var sylesObj = {};
+    sylesObj["libraryName"] = "localSymbols";
+    sylesObj["libraryID"] = "local";
+    sylesObj["matchedSymbolArray"] = localStylesArray;
+    sylesArray = sylesArray.concat(sylesObj);
+  }
+
+  for (var i = 0; i < libraries.count(); i++) {
+    var matchedForgienLayerStylesForLibraryObj = getMatchedForgienLayerStylesForLibrary(libraries[i]);
+    var libraryStylesArray = matchedForgienLayerStylesForLibraryObj[0];
+    layerSylesMapID = Object.assign({}, layerSylesMapID, matchedForgienLayerStylesForLibraryObj[1]);
+
+    if (libraryStylesArray) {
+      if (libraryStylesArray[0] != undefined) {
+        var sylesObj = {};
+        sylesObj["libraryName"] = String(libraries[i].name());
+        sylesObj["libraryID"] = String(libraries[i].libraryID());
+        sylesObj["matchedSymbolArray"] = libraryStylesArray;
+        sylesArray = sylesArray.concat(sylesObj);
+      }
+    }
+  }
+
+  return [sylesArray, layerSylesMapID];
+}
+
+function getLocalLayerSytles(document) {
+  var layerSylesMapID = {};
+  var sytles = [];
+  var stylesArrary = document.documentData().layerStyles().objects();
+
+  for (var i = 0; i < stylesArrary.length; i++) {
+    var StyleObj = {};
+    StyleObj["name"] = String(stylesArrary[i].name());
+    StyleObj["objectID"] = String(stylesArrary[i].objectID());
+    sytles.push(StyleObj);
+    layerSylesMapID[StyleObj.objectID] = StyleObj.name;
+  }
+
+  return [sytles, layerSylesMapID];
+}
+
+function getMatchedForgienLayerStylesForLibrary(library) {
+  var layerSylesMapID = {};
+  var provider = MSSharedLayerStyleProvider.alloc().initWithDocument(context.document);
+  var collector = MSForeignObjectCollector.alloc().initWithProvider(provider);
+  var shareableObjectRefsMap = collector.buildCollectionWithFilter(null);
+  var libraryPredicate = NSPredicate.predicateWithFormat("(library.libraryID == %@)", library.libraryID());
+  var matchedLibrary = shareableObjectRefsMap.filteredArrayUsingPredicate_(libraryPredicate);
+
+  if (matchedLibrary.count() > 0) {
+    var allStyles = matchedLibrary[0].objectRefs;
+    var matchStyleArray = [];
+
+    for (var i = 0; i < allStyles.count(); i++) {
+      var StyleObj = {};
+      StyleObj["name"] = String(allStyles[i].name());
+      StyleObj["objectID"] = String(allStyles[i].sharedObjectID()); //StyleObj["Thumbnail"] = String(getImageFromStyle(foreignStyle));
+
+      matchStyleArray = matchStyleArray.concat(StyleObj);
+      layerSylesMapID[StyleObj.objectID] = StyleObj.name;
+    }
+
+    return [matchStyleArray, layerSylesMapID];
+  }
+
+  return [];
+}
+
+function getTextSyles(DOCUMENT) {
+  var textSylesMapID = {};
+  var libraries = AppController.sharedInstance().librariesController().availableLibraries();
+  var sylesArray = [];
+  var localTextSytlesObj = getLocalTextSytles(DOCUMENT);
+  var localStylesArray = localTextSytlesObj[0];
+  textSylesMapID = localTextSytlesObj[1];
+
+  if (localStylesArray[0] != undefined) {
+    var sylesObj = {};
+    sylesObj["libraryName"] = "localSymbols";
+    sylesObj["libraryID"] = "local";
+    sylesObj["matchedSymbolArray"] = localStylesArray;
+    sylesArray = sylesArray.concat(sylesObj);
+  }
+
+  for (var i = 0; i < libraries.count(); i++) {
+    var matchedForgienTextStylesForLibraryObj = getMatchedForgienTextStylesForLibrary(libraries[i]);
+    var libraryStylesArray = matchedForgienTextStylesForLibraryObj[0];
+    textSylesMapID = Object.assign({}, textSylesMapID, matchedForgienTextStylesForLibraryObj[1]);
+
+    if (libraryStylesArray) {
+      if (libraryStylesArray[0] != undefined) {
+        var sylesObj = {};
+        sylesObj["libraryName"] = String(libraries[i].name());
+        sylesObj["libraryID"] = String(libraries[i].libraryID());
+        sylesObj["matchedSymbolArray"] = libraryStylesArray;
+        sylesArray = sylesArray.concat(sylesObj);
+      }
+    }
+  }
+
+  return [sylesArray, textSylesMapID];
+}
+
+function getLocalTextSytles(document) {
+  var textSylesMapID = {};
+  var sytles = [];
+  var stylesArrary = document.documentData().layerTextStyles().objects();
+
+  for (var i = 0; i < stylesArrary.length; i++) {
+    var style = {
+      name: String(stylesArrary[i].name()),
+      objectID: String(stylesArrary[i].objectID())
+    };
+    textSylesMapID[style.objectID] = style.name;
+    sytles.push(style);
+  }
+
+  return [sytles, textSylesMapID];
+}
+
+function getMatchedForgienTextStylesForLibrary(library) {
+  var textSylesMapID = {};
+  var provider = MSSharedTextStyleProvider.alloc().initWithDocument(context.document);
+  var collector = MSForeignObjectCollector.alloc().initWithProvider(provider);
+  var shareableObjectRefsMap = collector.buildCollectionWithFilter(null);
+  var libraryPredicate = NSPredicate.predicateWithFormat("(library.libraryID == %@)", library.libraryID());
+  var matchedLibrary = shareableObjectRefsMap.filteredArrayUsingPredicate_(libraryPredicate);
+
+  if (matchedLibrary.count() > 0) {
+    var allStyles = matchedLibrary[0].objectRefs;
+    var matchStyleArray = [];
+
+    for (var i = 0; i < allStyles.count(); i++) {
+      var StyleObj = {};
+      StyleObj["name"] = String(allStyles[i].name());
+      StyleObj["objectID"] = String(allStyles[i].sharedObjectID());
+      matchStyleArray = matchStyleArray.concat(StyleObj);
+      textSylesMapID[StyleObj.objectID] = StyleObj.name;
+    }
+
+    return [matchStyleArray, textSylesMapID];
+  }
+
+  return [];
+}
+
+function getStyleNameByIDinDocuemnt(document, ID) {
+  var localStyles = document.documentData().layerStyles().objects();
+
+  for (var i = 0; i < localStyles.count(); i++) {
+    if (String(localStyles[i].objectID()) == ID) {
+      return String(localStyles[i].name());
+    }
+  }
+
+  var foreignLayerStyles = document.documentData().foreignLayerStyles();
+
+  for (var _i = 0; _i < foreignLayerStyles.count(); _i++) {
+    if (String(foreignLayerStyles[_i].objectID()) == ID) {
+      return String(foreignLayerStyles[_i].localObject().name());
+    }
+  }
+
+  return "undefined - style name";
+}
+
+function getTextStyleNameByIDinDocuemnt(document, ID) {
+  var localStyles = document.documentData().layerTextStyles().objects();
+
+  for (var i = 0; i < localStyles.count(); i++) {
+    if (String(localStyles[i].objectID()) == ID) {
+      return String(localStyles[i].name());
+    }
+  }
+
+  var foreignLayerStyles = document.documentData().foreignTextStyles();
+
+  for (var _i2 = 0; _i2 < foreignLayerStyles.count(); _i2++) {
+    if (String(foreignLayerStyles[_i2].objectID()) == ID) {
+      return String(foreignLayerStyles[_i2].localObject().name());
+    }
+  }
+
+  return "undefined - style name";
+}
+
+function isSketchDark() {
+  return MSTheme.sharedTheme().isDark;
 } // NSApplication.sharedApplication().windows().forEach(w1 => {
 //   if(w1.document && w1.document()) {
 //     log(w1.document());
