@@ -12910,17 +12910,19 @@ var options = {
   var textSylesObj = getTextSyles(DOCUMENT);
   global.docTextStyle = textSylesObj[0];
   global.textSylesMapID = textSylesObj[1];
+  log("1");
   var layerSylesObj = getLayerSyles(DOCUMENT);
   global.docLayerStyle = layerSylesObj[0];
   global.layerSylesMapID = layerSylesObj[1];
+  log("2");
   global.importableSymbolsOverridesDicIdMap = {};
   var symbolInstance = {};
 
   if (Context.selection) {
     if (!browserWindow) {
-      browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("http://overrideit.migoart.com/?=1221"); // browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options); //browserWindow.loadURL("https://overrideit.migoart.com");
 
+      browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
       browserWindow.webContents.on("did-fail-load", function () {
         log("📵 not loaded");
         browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
@@ -12928,6 +12930,7 @@ var options = {
       //browserWindow.loadURL("http://localhost:8080/");
       //browserWindow.webContents["document"] = DOCUMENT;
 
+      log("3");
       symbolInstance = Context.selection[0];
       setWindowPosition(DOCUMENT, browserWindow);
       browserWindow.webContents.on("openExternal", function (url) {
@@ -12937,6 +12940,7 @@ var options = {
         browserWindow.close();
         threadDictionary.removeObjectForKey("overrideitWebView");
       });
+      log("4");
       browserWindow.webContents.on("setOverride", function (overridePoint, value, symbolInstanceID) {
         log(value);
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
@@ -13041,6 +13045,8 @@ var options = {
     }
   }
 
+  log("5");
+
   if (browserWindow) {
     if (Context.actionContext) {
       var action = Context.actionContext;
@@ -13050,12 +13056,14 @@ var options = {
       var context = Context;
     }
 
+    log("6");
     symbolInstance = context.selection[0];
 
     if (Context.actionContext) {
       global.overrides = loadOverridesForSelection(DOCUMENT, symbolInstance);
     }
 
+    log("7");
     runWebCallback("changeSelection", global.overrides, String(symbolInstance.objectID()));
   }
 });
