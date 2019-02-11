@@ -12910,19 +12910,17 @@ var options = {
   var textSylesObj = getTextSyles(DOCUMENT);
   global.docTextStyle = textSylesObj[0];
   global.textSylesMapID = textSylesObj[1];
-  log("1");
   var layerSylesObj = getLayerSyles(DOCUMENT);
   global.docLayerStyle = layerSylesObj[0];
   global.layerSylesMapID = layerSylesObj[1];
-  log("2");
   global.importableSymbolsOverridesDicIdMap = {};
   var symbolInstance = {};
 
   if (Context.selection) {
     if (!browserWindow) {
-      browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options); //browserWindow.loadURL("https://overrideit.migoart.com");
+      browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
+      browserWindow.loadURL("https://overrideit.migoart.com/"); //browserWindow.loadURL(require("../assets/index.html"));
 
-      browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
       browserWindow.webContents.on("did-fail-load", function () {
         log("📵 not loaded");
         browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
@@ -12930,7 +12928,6 @@ var options = {
       //browserWindow.loadURL("http://localhost:8080/");
       //browserWindow.webContents["document"] = DOCUMENT;
 
-      log("3");
       symbolInstance = Context.selection[0];
       setWindowPosition(DOCUMENT, browserWindow);
       browserWindow.webContents.on("openExternal", function (url) {
@@ -12940,7 +12937,6 @@ var options = {
         browserWindow.close();
         threadDictionary.removeObjectForKey("overrideitWebView");
       });
-      log("4");
       browserWindow.webContents.on("setOverride", function (overridePoint, value, symbolInstanceID) {
         log(value);
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
@@ -12998,8 +12994,6 @@ var options = {
         }
       });
       browserWindow.webContents.on("setSymbolOverride", function (overridePoint, libraryID, value, symbolInstanceID, type) {
-        log("🍕");
-        log(value);
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
         var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
 
@@ -13013,13 +13007,11 @@ var options = {
         } else if (type == "layerStyle") {
           var style = layerStyleInLibraryWithIDs(DOCUMENT, value, libraryID);
           var styleID = style.objectID();
-          log(styleID);
           setOverrides(symbolInstance, overridePoint, styleID);
           global.layerSylesMapID[styleID] = style.name();
         } else if (type == "textStyle") {
           var style = textStyleInLibraryWithIDs(DOCUMENT, value, libraryID);
           var styleID = style.objectID();
-          log(styleID);
           setOverrides(symbolInstance, overridePoint, styleID);
           global.textSylesMapID[styleID] = style.name();
         }
@@ -13045,8 +13037,6 @@ var options = {
     }
   }
 
-  log("5");
-
   if (browserWindow) {
     if (Context.actionContext) {
       var action = Context.actionContext;
@@ -13056,14 +13046,12 @@ var options = {
       var context = Context;
     }
 
-    log("6");
     symbolInstance = context.selection[0];
 
     if (Context.actionContext) {
       global.overrides = loadOverridesForSelection(DOCUMENT, symbolInstance);
     }
 
-    log("7");
     runWebCallback("changeSelection", global.overrides, String(symbolInstance.objectID()));
   }
 });
@@ -13371,7 +13359,6 @@ function layerStyleInLibraryWithIDs(DOCUMENT, styleID, libraryID) {
       for (var i = 0; i < libraries.count(); i++) {
         if (libraries[i].libraryID() == libraryID) {
           style = libraries[i].document().layerStyleWithID(styleID);
-          log(style);
           return localSymbolForSymbol_inLibrary(DOCUMENT, style, libraries[i]).localObject();
         }
       }
@@ -13395,7 +13382,6 @@ function textStyleInLibraryWithIDs(DOCUMENT, styleID, libraryID) {
       for (var i = 0; i < libraries.count(); i++) {
         if (libraries[i].libraryID() == libraryID) {
           style = libraries[i].document().textStyleWithID(styleID);
-          log(style);
           return localSymbolForSymbol_inLibrary(DOCUMENT, style, libraries[i]).localObject();
         }
       }
@@ -13493,7 +13479,6 @@ function getMatchedForgienSymbolForLibrary(DOCUMENT, symbol, library) {
 function localSymbolForSymbol_inLibrary(DOCUMENT, symbol, library) {
   if (MSApplicationMetadata.metadata().appVersion >= 50) {
     var shareableObjectReference = MSShareableObjectReference.referenceForShareableObject_inLibrary(symbol, library);
-    log(shareableObjectReference);
     var importedSymbol = AppController.sharedInstance().librariesController().importShareableObjectReference_intoDocument(shareableObjectReference, DOCUMENT.documentData());
   } else {
     var importedSymbol = AppController.sharedInstance().librariesController().importForeignSymbol_fromLibrary_intoDocument_(symbol, library, DOCUMENT.documentData());
