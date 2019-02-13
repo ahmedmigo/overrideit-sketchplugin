@@ -12919,7 +12919,7 @@ var options = {
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("https://overrideit.migoart.com/"); //browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.4"); //browserWindow.loadURL(require("../assets/index.html"));
 
       browserWindow.webContents.on("did-fail-load", function () {
         log("📵 not loaded");
@@ -13684,7 +13684,8 @@ function getTextStyleNameByIDinDocuemnt(document, ID) {
 }
 
 function isSketchDark() {
-  return MSTheme.sharedTheme().isDark;
+  log(MSTheme.sharedTheme().isDark());
+  return MSTheme.sharedTheme().isDark();
 } // NSApplication.sharedApplication().windows().forEach(w1 => {
 //   if(w1.document && w1.document()) {
 //     log(w1.document());
