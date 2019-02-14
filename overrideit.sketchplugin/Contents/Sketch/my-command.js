@@ -12917,7 +12917,7 @@ var options = {
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.5"); //browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.6"); //browserWindow.loadURL(require("../assets/index.html"));
 
       log("overrideit: " + "browserWindow loaded 🚀");
       log("overrideit: " + browserWindow);
@@ -13026,8 +13026,11 @@ var options = {
         runWebCallback("getOverrides", overrides, String(symbolInstance.objectID()));
       });
       browserWindow.once("ready-to-show", function () {
-        browserWindow.show();
-
+        browserWindow.show(); // if (isSketchDark()) {
+        //   runWebCallback("changetoDark");
+        // }
+      });
+      browserWindow.webContents.on("did-finish-load", function () {
         if (isSketchDark()) {
           runWebCallback("changetoDark");
         }
