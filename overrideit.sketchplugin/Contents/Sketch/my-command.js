@@ -12902,27 +12902,27 @@ var options = {
   //transparent: true
   var threadDictionary = NSThread.mainThread().threadDictionary();
   var browserWindow = threadDictionary["overrideitWebView"];
-  log("browserWindow 🎉 ");
-  log(browserWindow);
+  log("overrideit: " + "browserWindow 🎉 ");
+  log("overrideit: " + browserWindow);
   var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
   global.overrides = {};
   global.symbolsOverrides = {};
-  var textSylesObj = getTextSyles(DOCUMENT);
-  global.docTextStyle = textSylesObj[0];
-  global.textSylesMapID = textSylesObj[1];
-  var layerSylesObj = getLayerSyles(DOCUMENT);
-  global.docLayerStyle = layerSylesObj[0];
-  global.layerSylesMapID = layerSylesObj[1];
+  global.docTextStyle = {};
+  global.textSylesMapID = {};
+  global.docLayerStyle = {};
+  global.layerSylesMapID = {};
   global.importableSymbolsOverridesDicIdMap = {};
   var symbolInstance = {};
 
   if (Context.selection) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.4"); //browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.5"); //browserWindow.loadURL(require("../assets/index.html"));
 
+      log("overrideit: " + "browserWindow loaded 🚀");
+      log("overrideit: " + browserWindow);
       browserWindow.webContents.on("did-fail-load", function () {
-        log("📵 not loaded");
+        log("overrideit: " + "📵 not loaded");
         browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
       }); // browserWindow.loadURL(require("../assets/index.html"));
       //browserWindow.loadURL("http://localhost:8080/");
@@ -12934,11 +12934,12 @@ var options = {
         NSWorkspace.sharedWorkspace().openURL(NSURL.URLWithString(url));
       });
       browserWindow.webContents.on("closeWindow", function () {
-        browserWindow.close();
-        threadDictionary.removeObjectForKey("overrideitWebView");
+        browserWindow.close(); // threadDictionary.removeObjectForKey("overrideitWebView");
+        // log("overrideit: " + "window is closed");
+        // log("overrideit: " + threadDictionary["overrideitWebView"]);
       });
       browserWindow.webContents.on("setOverride", function (overridePoint, value, symbolInstanceID) {
-        log(value);
+        log("overrideit: " + value);
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
         var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
         setOverrides(symbolInstance, overridePoint, value);
@@ -13030,10 +13031,9 @@ var options = {
         if (isSketchDark()) {
           runWebCallback("changetoDark");
         }
-      });
-      browserWindow.on("closed", function () {
-        threadDictionary.removeObjectForKey("overrideitWebView");
-      });
+      }); // browserWindow.on("closed", () => {
+      //   threadDictionary.removeObjectForKey("overrideitWebView");
+      // });
     }
   }
 
@@ -13046,6 +13046,12 @@ var options = {
       var context = Context;
     }
 
+    var textSylesObj = getTextSyles(DOCUMENT);
+    global.docTextStyle = textSylesObj[0];
+    global.textSylesMapID = textSylesObj[1];
+    var layerSylesObj = getLayerSyles(DOCUMENT);
+    global.docLayerStyle = layerSylesObj[0];
+    global.layerSylesMapID = layerSylesObj[1];
     symbolInstance = context.selection[0];
 
     if (Context.actionContext) {
@@ -13150,8 +13156,8 @@ function runWebCallback(callbackName) {
       Object(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__["sendToWebview"])("overrideitWebView", js);
     }
   } catch (e) {
-    log(e.message);
-    log(e);
+    log("overrideit: " + e.message);
+    log("overrideit: " + e);
   }
 }
 
@@ -13684,14 +13690,13 @@ function getTextStyleNameByIDinDocuemnt(document, ID) {
 }
 
 function isSketchDark() {
-  log(MSTheme.sharedTheme().isDark());
   return MSTheme.sharedTheme().isDark();
 } // NSApplication.sharedApplication().windows().forEach(w1 => {
 //   if(w1.document && w1.document()) {
-//     log(w1.document());
+//     log("overrideit: " + w1.document());
 //   }
 // });
-// log(NSApplication.sharedApplication().mainWindow().document())
+// log("overrideit: " + NSApplication.sharedApplication().mainWindow().document())
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/promise-polyfill/lib/index.js */ "./node_modules/promise-polyfill/lib/index.js"), __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ })
