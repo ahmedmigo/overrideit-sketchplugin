@@ -12917,7 +12917,7 @@ var options = {
   if (Context.selection && Context.selection.count() != 0) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.7"); //browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.8"); //browserWindow.loadURL(require("../assets/index.html"));
 
       log("overrideit: " + "browserWindow loaded 🚀");
       log("overrideit: " + browserWindow);
@@ -13092,7 +13092,7 @@ function getOverrides(DOCUMENT, symbolInstance) {
   var availableOverrides = symbolInstance.availableOverrides();
 
   for (var i = 0; i < availableOverrides.count(); i++) {
-    if (!availableOverrides[i].affectedLayer().isLocked()) {
+    if (!availableOverrides[i].affectedLayer().isLocked() && availableOverrides[i].isEditable()) {
       var overridePoint = availableOverrides[i].overridePoint();
 
       if (overridePoint.isSymbolOverride() && availableOverrides[i].currentValue()) {
@@ -13128,7 +13128,7 @@ function getOverridesFromSymbolOverride(DOCUMENT, symbolOverride, overrides, isP
   overrides[override.overrideID] = override;
 
   for (var i = 0; i < availableOverrides.count(); i++) {
-    if (!availableOverrides[i].affectedLayer().isLocked()) {
+    if (!availableOverrides[i].affectedLayer().isLocked() && availableOverrides[i].isEditable()) {
       var overridePoint = availableOverrides[i].overridePoint();
 
       if (overridePoint.isSymbolOverride() && availableOverrides[i].currentValue() != "") {
