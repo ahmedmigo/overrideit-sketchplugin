@@ -12914,10 +12914,10 @@ var options = {
   global.importableSymbolsOverridesDicIdMap = {};
   var symbolInstance = {};
 
-  if (Context.selection) {
+  if (Context.selection && Context.selection.count() != 0) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.6"); //browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.7"); //browserWindow.loadURL(require("../assets/index.html"));
 
       log("overrideit: " + "browserWindow loaded 🚀");
       log("overrideit: " + browserWindow);
