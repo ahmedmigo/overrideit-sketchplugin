@@ -36,7 +36,7 @@
       "Overrideit"
     ]
   },
-  "version": "0.3.8",
+  "version": "0.3.9",
   "disableCocoaScriptPreprocessor": true,
   "appcast": "https://raw.githubusercontent.com//master/.appcast.xml"
 }

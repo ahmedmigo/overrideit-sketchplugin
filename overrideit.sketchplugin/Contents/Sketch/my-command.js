@@ -12902,8 +12902,8 @@ var options = {
   //transparent: true
   var threadDictionary = NSThread.mainThread().threadDictionary();
   var browserWindow = threadDictionary["overrideitWebView"];
-  log("overrideit: " + "browserWindow 🎉 ");
-  log("overrideit: " + browserWindow);
+  LOG("overrideit: " + "browserWindow 🎉 ");
+  LOG("overrideit: " + browserWindow);
   var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
   global.overrides = {};
   global.symbolsOverrides = {};
@@ -12917,12 +12917,12 @@ var options = {
   if (Context.selection && Context.selection.count() != 0) {
     if (!browserWindow) {
       browserWindow = new sketch_module_web_view__WEBPACK_IMPORTED_MODULE_0___default.a(options);
-      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.8"); //browserWindow.loadURL(require("../assets/index.html"));
+      browserWindow.loadURL("https://overrideit.migoart.com/?=v0.3.9"); //browserWindow.loadURL(require("../assets/index.html"));
 
-      log("overrideit: " + "browserWindow loaded 🚀");
-      log("overrideit: " + browserWindow);
+      LOG("overrideit: " + "browserWindow loaded 🚀");
+      LOG("overrideit: " + browserWindow);
       browserWindow.webContents.on("did-fail-load", function () {
-        log("overrideit: " + "📵 not loaded");
+        LOG("overrideit: " + "📵 not loaded");
         browserWindow.loadURL(__webpack_require__(/*! ../assets/index.html */ "./assets/index.html"));
       }); // browserWindow.loadURL(require("../assets/index.html"));
       //browserWindow.loadURL("http://localhost:8080/");
@@ -12935,11 +12935,11 @@ var options = {
       });
       browserWindow.webContents.on("closeWindow", function () {
         browserWindow.close(); // threadDictionary.removeObjectForKey("overrideitWebView");
-        // log("overrideit: " + "window is closed");
-        // log("overrideit: " + threadDictionary["overrideitWebView"]);
+        // LOG("overrideit: " + "window is closed");
+        // LOG("overrideit: " + threadDictionary["overrideitWebView"]);
       });
       browserWindow.webContents.on("setOverride", function (overridePoint, value, symbolInstanceID) {
-        log("overrideit: " + value);
+        LOG("overrideit: " + value);
         var DOCUMENT = NSApplication.sharedApplication().mainWindow().document();
         var symbolInstance = DOCUMENT.documentData().layerWithID(symbolInstanceID);
         setOverrides(symbolInstance, overridePoint, value);
@@ -13159,8 +13159,8 @@ function runWebCallback(callbackName) {
       Object(sketch_module_web_view_remote__WEBPACK_IMPORTED_MODULE_1__["sendToWebview"])("overrideitWebView", js);
     }
   } catch (e) {
-    log("overrideit: " + e.message);
-    log("overrideit: " + e);
+    LOG("overrideit: " + e.message);
+    LOG("overrideit: " + e);
   }
 }
 
@@ -13696,10 +13696,19 @@ function isSketchDark() {
   return MSTheme.sharedTheme().isDark();
 } // NSApplication.sharedApplication().windows().forEach(w1 => {
 //   if(w1.document && w1.document()) {
-//     log("overrideit: " + w1.document());
+//     LOG("overrideit: " + w1.document());
 //   }
 // });
-// log("overrideit: " + NSApplication.sharedApplication().mainWindow().document())
+// LOG("overrideit: " + NSApplication.sharedApplication().mainWindow().document())
+
+
+var testing = false;
+
+function LOG(message) {
+  if (testing) {
+    log(message);
+  }
+}
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/promise-polyfill/lib/index.js */ "./node_modules/promise-polyfill/lib/index.js"), __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ })
