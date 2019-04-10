@@ -13089,7 +13089,16 @@ function setImgfromUrl(url) {
 
 function getOverrides(DOCUMENT, symbolInstance) {
   var overrides = {};
-  var availableOverrides = symbolInstance.availableOverrides();
+  var availableOverrides = [];
+  var selectedOverrides = symbolInstance.overrideContainer().selectedOverrides();
+
+  if (selectedOverrides.count() > 0) {
+    for (var i = 0; i < selectedOverrides.count(); i++) {
+      availableOverrides.push(selectedOverrides[i].availableOverride());
+    }
+  } else {
+    availableOverrides = symbolInstance.availableOverrides();
+  }
 
   for (var i = 0; i < availableOverrides.count(); i++) {
     if (!availableOverrides[i].affectedLayer().isLocked() && availableOverrides[i].isEditable()) {
@@ -13709,6 +13718,10 @@ function LOG(message) {
     log(message);
   }
 }
+
+Array.prototype.count = function () {
+  return this.length;
+}; //console.log(context.selection[0].overrideContainer().selectedOverrides()[0].availableOverride().overridePoint().name())
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/promise-polyfill/lib/index.js */ "./node_modules/promise-polyfill/lib/index.js"), __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ })
